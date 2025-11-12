@@ -21,6 +21,7 @@ public:
     ~MainWindow();
     
     bool eventFilter(QObject* obj, QEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
     
     void handleStationClick(DraggableStation* station);
     void handleStationMoved(int stationId, QPointF newPos);
@@ -57,6 +58,8 @@ private:
     void createStation(const QString& name, double x, double y);
     void updateComboBoxes();
     void updateGeneralInfo();
+    void zoomIn();
+    void zoomOut();
     void exportTraversals();
     void generateReport();
 };

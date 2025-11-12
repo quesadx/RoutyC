@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QBrush>
+#include <QColor>
 
 MainWindow::MainWindow(QWidget *parent) 
     : QMainWindow(parent), ui(new Ui::MainWindow), 
@@ -41,6 +42,8 @@ void MainWindow::setupScene() {
     
     ui->gvArea->viewport()->installEventFilter(this);
     ui->gvArea->setRenderHint(QPainter::Antialiasing);
+    ui->gvArea->setDragMode(QGraphicsView::ScrollHandDrag);
+    ui->gvArea->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
 void MainWindow::setupAlgorithms() {
@@ -51,6 +54,21 @@ void MainWindow::setupAlgorithms() {
     for (PathAlgorithm* algo : algorithms) {
         ui->cbAlgorithm->addItem(QString::fromStdString(algo->getName()));
     }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* event) {
+    if (event->modifiers() & Qt::ControlModifier) {
+        if (event->key() == Qt::Key_Plus || event->key() == Qt::Key_Equal) {
+            zoomIn();
+            event->accept();
+            return;
+        } else if (event->key() == Qt::Key_Minus) {
+            zoomOut();
+            event->accept();
+            return;
+        }
+    }
+    QMainWindow::keyPressEvent(event);
 }
 
 bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
@@ -122,22 +140,30 @@ void MainWindow::updateGeneralInfo() {
     ui->lblGeneralInfo->setText(info);
 }
 
+void MainWindow::zoomIn() {
+    ui->gvArea->scale(1.15, 1.15);
+}
+
+void MainWindow::zoomOut() {
+    ui->gvArea->scale(1.0 / 1.15, 1.0 / 1.15);
+}
+
 void MainWindow::handleStationClick(DraggableStation* station) {
     int clickedId = station->getStationId();
     
     if (selectedStationId == -1) {
         selectedStationId = clickedId;
-        station->setBrush(QBrush(Qt::green));
+        station->setBrush(QBrush(QColor(147, 51, 234)));
     } else if (selectedStationId == clickedId) {
         selectedStationId = -1;
-        station->setBrush(QBrush(Qt::blue));
+        station->setBrush(QBrush(QColor(124, 58, 237)));
     } else {
         int firstId = selectedStationId;
         int secondId = clickedId;
         
         DraggableStation* firstStation = networkManager->getStation(firstId);
         if (firstStation) {
-            firstStation->setBrush(QBrush(Qt::blue));
+            firstStation->setBrush(QBrush(QColor(124, 58, 237)));
         }
         
         bool ok;

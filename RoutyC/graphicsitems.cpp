@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QBrush>
 #include <QPen>
+#include <QColor>
 
 DraggableStation::DraggableStation(int stationId, double x, double y, double diameter, MainWindow* window)
     : QGraphicsEllipseItem(x - diameter/2, y - diameter/2, diameter, diameter),
@@ -11,8 +12,8 @@ DraggableStation::DraggableStation(int stationId, double x, double y, double dia
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges);
-    setBrush(QBrush(Qt::blue));
-    setPen(QPen(Qt::black, 2));
+    setBrush(QBrush(QColor(124, 58, 237)));
+    setPen(QPen(QColor(167, 139, 250), 2));
 }
 
 int DraggableStation::getStationId() const {
@@ -87,7 +88,7 @@ void DraggableStation::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
 ClickableRoute::ClickableRoute(int id1, int id2, const QLineF& line, MainWindow* window)
     : QGraphicsLineItem(line), sourceId(id1), destId(id2), mainWindow(window) {
     setFlag(QGraphicsItem::ItemIsSelectable);
-    setPen(QPen(Qt::black, 2));
+    setPen(QPen(QColor(107, 114, 128), 2));
 }
 
 int ClickableRoute::getSourceId() const {

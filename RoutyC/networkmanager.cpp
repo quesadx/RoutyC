@@ -4,6 +4,7 @@
 #include <QGraphicsScene>
 #include <QBrush>
 #include <QPen>
+#include <QColor>
 
 NetworkManager::NetworkManager(QGraphicsScene* scene, MainWindow* window)
     : scene(scene), mainWindow(window) {
@@ -208,25 +209,25 @@ void NetworkManager::highlightPath(const std::vector<int>& path) {
     
     for (int stationId : path) {
         if (stationItems.find(stationId) != stationItems.end()) {
-            stationItems[stationId]->setBrush(QBrush(Qt::yellow));
+            stationItems[stationId]->setBrush(QBrush(QColor(168, 85, 247)));
         }
     }
     
     for (size_t i = 0; i < path.size() - 1; i++) {
         std::pair<int, int> key = normalizeEdgePair(path[i], path[i + 1]);
         if (routeItems.find(key) != routeItems.end()) {
-            routeItems[key]->setPen(QPen(Qt::red, 4));
+            routeItems[key]->setPen(QPen(QColor(168, 85, 247), 4));
         }
     }
 }
 
 void NetworkManager::clearHighlights() {
     for (auto& pair : stationItems) {
-        pair.second->setBrush(QBrush(Qt::blue));
+        pair.second->setBrush(QBrush(QColor(124, 58, 237)));
     }
     
     for (auto& pair : routeItems) {
-        pair.second->setPen(QPen(Qt::black, 2));
+        pair.second->setPen(QPen(QColor(107, 114, 128), 2));
     }
 }
 
