@@ -28,7 +28,8 @@ add_executable(RoutyC main.cpp
         graphicsitems.cpp
         graphicsitems.h
         networkmanager.cpp
-        networkmanager.h)
+        networkmanager.h
+        resources.qrc)
 target_link_libraries(RoutyC
         Qt::Core
         Qt::Gui

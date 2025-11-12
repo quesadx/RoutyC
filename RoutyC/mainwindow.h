@@ -56,6 +56,7 @@ private:
     void setupAlgorithms();
     void createStation(const QString& name, double x, double y);
     void updateComboBoxes();
+    void updateGeneralInfo();
     void exportTraversals();
     void generateReport();
 };

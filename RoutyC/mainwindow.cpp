@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setupScene();
     setupAlgorithms();
+    updateGeneralInfo();
 }
 
 MainWindow::~MainWindow() {
@@ -59,7 +60,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
         QGraphicsItem* item = scene->itemAt(scenePos, ui->gvArea->transform());
         if (!item) {
             bool ok;
-            QString name = QInputDialog::getText(this, "Create Station", "Enter station name:", 
+            QString name = QInputDialog::getText(this, "Crear Estación", "Ingrese el nombre de la estación:", 
                                                  QLineEdit::Normal, "", &ok);
             if (ok && !name.isEmpty()) {
                 createStation(name, scenePos.x(), scenePos.y());
@@ -74,6 +75,7 @@ void MainWindow::createStation(const QString& name, double x, double y) {
     int id = nextStationId++;
     networkManager->createStation(id, name, x, y);
     updateComboBoxes();
+    updateGeneralInfo();
 }
 
 void MainWindow::updateComboBoxes() {
@@ -101,6 +103,24 @@ void MainWindow::updateComboBoxes() {
     }
 }
 
+void MainWindow::updateGeneralInfo() {
+    std::vector<StationNode*> stations = networkManager->getAllStations();
+    int totalStations = stations.size();
+    
+    TransportGraph* graph = networkManager->getGraph();
+    int totalRoutes = 0;
+    std::vector<int> allStations = graph->getAllStations();
+    for (int stationId : allStations) {
+        totalRoutes += graph->getNeighbors(stationId).size();
+    }
+    totalRoutes /= 2;
+    
+    QString info = QString("Estaciones totales: %1 | Rutas totales: %2")
+                   .arg(totalStations)
+                   .arg(totalRoutes);
+    ui->lblGeneralInfo->setText(info);
+}
+
 void MainWindow::handleStationClick(DraggableStation* station) {
     int clickedId = station->getStationId();
     
@@ -120,11 +140,12 @@ void MainWindow::handleStationClick(DraggableStation* station) {
         }
         
         bool ok;
-        int travelTime = QInputDialog::getInt(this, "Create Route", 
-                                              "Enter travel time (minutes):", 
+        int travelTime = QInputDialog::getInt(this, "Crear Ruta", 
+                                              "Ingrese el tiempo de viaje (minutos):", 
                                               10, 1, 1000, 1, &ok);
         if (ok) {
             networkManager->createRoute(firstId, secondId, travelTime);
+            updateGeneralInfo();
         }
         
         selectedStationId = -1;
@@ -143,10 +164,12 @@ void MainWindow::handleStationDelete(int stationId) {
     }
     
     updateComboBoxes();
+    updateGeneralInfo();
 }
 
 void MainWindow::handleRouteDelete(int sourceId, int destId) {
     networkManager->deleteRoute(sourceId, destId);
+    updateGeneralInfo();
 }
 
 void MainWindow::updateRoutePositionsDuringDrag(int stationId, const QPointF& center) {
@@ -154,8 +177,8 @@ void MainWindow::updateRoutePositionsDuringDrag(int stationId, const QPointF& ce
 }
 
 void MainWindow::exportTraversals() {
-    QString filename = QFileDialog::getSaveFileName(this, "Export Traversals", "", 
-                                                    "Text Files (*.txt);;All Files (*)");
+    QString filename = QFileDialog::getSaveFileName(this, "Exportar Recorridos", "", 
+                                                    "Archivos de Texto (*.txt);;Todos los Archivos (*)");
     
     if (filename.isEmpty()) {
         return;
@@ -163,7 +186,7 @@ void MainWindow::exportTraversals() {
     
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Error", "Failed to open file for writing");
+        QMessageBox::critical(this, "Error", "No se pudo abrir el archivo para escritura");
         return;
     }
     
@@ -201,12 +224,12 @@ void MainWindow::exportTraversals() {
     }
     
     file.close();
-    QMessageBox::information(this, "Success", "Traversals exported successfully");
+    QMessageBox::information(this, "Éxito", "Recorridos exportados exitosamente");
 }
 
 void MainWindow::generateReport() {
-    QString filename = QFileDialog::getSaveFileName(this, "Generate Report", "", 
-                                                    "Text Files (*.txt);;All Files (*)");
+    QString filename = QFileDialog::getSaveFileName(this, "Generar Reporte", "", 
+                                                    "Archivos de Texto (*.txt);;Todos los Archivos (*)");
     
     if (filename.isEmpty()) {
         return;
@@ -214,7 +237,7 @@ void MainWindow::generateReport() {
     
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Error", "Failed to open file for writing");
+        QMessageBox::critical(this, "Error", "No se pudo abrir el archivo para escritura");
         return;
     }
     
@@ -265,7 +288,7 @@ void MainWindow::generateReport() {
     }
     
     file.close();
-    QMessageBox::information(this, "Success", "Report generated successfully");
+    QMessageBox::information(this, "Éxito", "Reporte generado exitosamente");
 }
 
 void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
@@ -274,7 +297,7 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     int algoIndex = ui->cbAlgorithm->currentIndex();
     
     if (originIndex < 0 || destIndex < 0 || algoIndex < 0) {
-        QMessageBox::warning(this, "Error", "Please select origin, destination, and algorithm");
+        QMessageBox::warning(this, "Error", "Por favor seleccione origen, destino y algoritmo");
         return;
     }
     
@@ -282,7 +305,7 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     int destId = ui->cbDestination->itemData(destIndex).toInt();
     
     if (originId == destId) {
-        QMessageBox::warning(this, "Error", "Origin and destination must be different");
+        QMessageBox::warning(this, "Error", "El origen y el destino deben ser diferentes");
         return;
     }
     
@@ -292,19 +315,19 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     PathResult result = algo->findPath(networkManager->getGraph(), originId, destId);
     
     ui->pteOutput->clear();
-    ui->pteOutput->appendPlainText("Algorithm: " + QString::fromStdString(result.algorithmName));
-    ui->pteOutput->appendPlainText("Origin: " + ui->cbOrigin->currentText());
-    ui->pteOutput->appendPlainText("Destination: " + ui->cbDestination->currentText());
+    ui->pteOutput->appendPlainText("Algoritmo: " + QString::fromStdString(result.algorithmName));
+    ui->pteOutput->appendPlainText("Origen: " + ui->cbOrigin->currentText());
+    ui->pteOutput->appendPlainText("Destino: " + ui->cbDestination->currentText());
     ui->pteOutput->appendPlainText("");
     
     if (result.found) {
         networkManager->highlightPath(result.path);
         
-        ui->pteOutput->appendPlainText("Path found!");
-        ui->pteOutput->appendPlainText("Total cost: " + QString::number(result.totalCost) + " minutes");
+        ui->pteOutput->appendPlainText("¡Ruta encontrada!");
+        ui->pteOutput->appendPlainText("Costo total: " + QString::number(result.totalCost) + " minutos");
         ui->pteOutput->appendPlainText("");
         
-        QString pathStr = "Path: ";
+        QString pathStr = "Ruta: ";
         for (size_t i = 0; i < result.path.size(); i++) {
             StationNode* node = networkManager->getTree()->findStation(result.path[i]);
             if (node) {
@@ -316,15 +339,15 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
         }
         ui->pteOutput->appendPlainText(pathStr);
         ui->pteOutput->appendPlainText("");
-        ui->pteOutput->appendPlainText("Execution steps:");
+        ui->pteOutput->appendPlainText("Pasos de ejecución:");
         
         for (const std::string& step : result.steps) {
             ui->pteOutput->appendPlainText(QString::fromStdString(step));
         }
     } else {
-        ui->pteOutput->appendPlainText("No path found!");
+        ui->pteOutput->appendPlainText("¡No se encontró una ruta!");
         ui->pteOutput->appendPlainText("");
-        ui->pteOutput->appendPlainText("Execution steps:");
+        ui->pteOutput->appendPlainText("Pasos de ejecución:");
         
         for (const std::string& step : result.steps) {
             ui->pteOutput->appendPlainText(QString::fromStdString(step));
@@ -342,8 +365,8 @@ void MainWindow::on_cbAlgorithm_currentIndexChanged(int index) {
 }
 
 void MainWindow::on_actionSave_triggered() {
-    QString filename = QFileDialog::getSaveFileName(this, "Save Network", "", 
-                                                    "RoutyC Files (*.rty);;All Files (*)");
+    QString filename = QFileDialog::getSaveFileName(this, "Guardar Red", "", 
+                                                    "Archivos RoutyC (*.rty);;Todos los Archivos (*)");
     
     if (filename.isEmpty()) {
         return;
@@ -351,15 +374,15 @@ void MainWindow::on_actionSave_triggered() {
     
     if (FileManager::saveToFile(filename.toStdString(), networkManager->getTree(), 
                                 networkManager->getGraph())) {
-        QMessageBox::information(this, "Success", "Network saved successfully");
+        QMessageBox::information(this, "Éxito", "Red guardada exitosamente");
     } else {
-        QMessageBox::critical(this, "Error", "Failed to save network");
+        QMessageBox::critical(this, "Error", "No se pudo guardar la red");
     }
 }
 
 void MainWindow::on_actionLoad_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Load Network", "", 
-                                                    "RoutyC Files (*.rty);;All Files (*)");
+    QString filename = QFileDialog::getOpenFileName(this, "Cargar Red", "", 
+                                                    "Archivos RoutyC (*.rty);;Todos los Archivos (*)");
     
     if (filename.isEmpty()) {
         return;
@@ -384,9 +407,10 @@ void MainWindow::on_actionLoad_triggered() {
             nextStationId = maxId + 1;
         }
         
-        QMessageBox::information(this, "Success", "Network loaded successfully");
+        updateGeneralInfo();
+        QMessageBox::information(this, "Éxito", "Red cargada exitosamente");
     } else {
-        QMessageBox::critical(this, "Error", "Failed to load network");
+        QMessageBox::critical(this, "Error", "No se pudo cargar la red");
     }
 }
 
@@ -395,26 +419,27 @@ void MainWindow::on_actionClearCurrentDisplay_triggered() {
     selectedStationId = -1;
     nextStationId = 101;
     updateComboBoxes();
+    updateGeneralInfo();
 }
 
 void MainWindow::on_actionCreateRoute_triggered() {
-    QMessageBox::information(this, "Create Route", 
-                           "Click on two stations in the map to create a route.");
+    QMessageBox::information(this, "Crear Ruta", 
+                           "Haga clic en dos estaciones en el mapa para crear una ruta.");
 }
 
 void MainWindow::on_actionDeleteRoute_triggered() {
-    QMessageBox::information(this, "Delete Route", 
-                           "Right-click on a route line to delete it.");
+    QMessageBox::information(this, "Eliminar Ruta", 
+                           "Haga clic derecho en una línea de ruta para eliminarla.");
 }
 
 void MainWindow::on_actionCreateStation_triggered() {
-    QMessageBox::information(this, "Create Station", 
-                           "Double-click on an empty area to create a station.");
+    QMessageBox::information(this, "Crear Estación", 
+                           "Haga doble clic en un área vacía para crear una estación.");
 }
 
 void MainWindow::on_actionDeleteStation_triggered() {
-    QMessageBox::information(this, "Delete Station", 
-                           "Right-click on a station to delete it.");
+    QMessageBox::information(this, "Eliminar Estación", 
+                           "Haga clic derecho en una estación para eliminarla.");
 }
 
 void MainWindow::on_actionExportTraversals_triggered() {

@@ -76,7 +76,7 @@ void DraggableStation::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
 
 void DraggableStation::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
     QMenu menu;
-    QAction* deleteAction = menu.addAction("Delete Station");
+    QAction* deleteAction = menu.addAction("Eliminar Estación");
     
     QAction* selected = menu.exec(event->screenPos());
     if (selected == deleteAction && mainWindow) {
@@ -104,7 +104,7 @@ void ClickableRoute::setMainWindow(MainWindow* window) {
 
 void ClickableRoute::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
     QMenu menu;
-    QAction* deleteAction = menu.addAction("Delete Route");
+    QAction* deleteAction = menu.addAction("Eliminar Ruta");
     
     QAction* selected = menu.exec(event->screenPos());
     if (selected == deleteAction && mainWindow) {
