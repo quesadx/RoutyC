@@ -16,7 +16,15 @@ find_package(Qt6 COMPONENTS
 add_executable(RoutyC main.cpp
         mainwindow.cpp
         mainwindow.h
-        mainwindow.ui)
+        mainwindow.ui
+        stationtree.cpp
+        stationtree.h
+        transportgraph.cpp
+        transportgraph.h
+        pathalgorithm.cpp
+        pathalgorithm.h
+        filemanager.cpp
+        filemanager.h)
 target_link_libraries(RoutyC
         Qt::Core
         Qt::Gui

@@ -147,10 +147,6 @@ MainWindow::~MainWindow() {
     }
     if (scene) {
         delete scene;
-    }
-    delete ui;
-}
-
 void MainWindow::setupScene() {
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, 800, 600);
@@ -171,6 +167,10 @@ void MainWindow::setupAlgorithms() {
     for (PathAlgorithm* algo : algorithms) {
         ui->cbAlgorithm->addItem(QString::fromStdString(algo->getName()));
     }
+}   graph = new TransportGraph();
+    
+    ui->gvArea->viewport()->installEventFilter(this);
+    ui->gvArea->setRenderHint(QPainter::Antialiasing);
 }
 
 bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
@@ -341,189 +341,6 @@ void MainWindow::updateComboBoxes() {
     }
 }
 
-void MainWindow::highlightPath(const std::vector<int>& path) {
-    clearHighlights();
-    
-    for (int stationId : path) {
-        if (stationItems.find(stationId) != stationItems.end()) {
-            stationItems[stationId]->setBrush(QBrush(Qt::yellow));
-        }
-    }
-    
-    for (size_t i = 0; i < path.size() - 1; i++) {
-        std::pair<int, int> key = normalizeEdgePair(path[i], path[i + 1]);
-        if (routeItems.find(key) != routeItems.end()) {
-            routeItems[key]->setPen(QPen(Qt::red, 4));
-        }
-    }
-}
-
-void MainWindow::clearHighlights() {
-    for (auto& pair : stationItems) {
-        pair.second->setBrush(QBrush(Qt::blue));
-    }
-    
-    for (auto& pair : routeItems) {
-        pair.second->setPen(QPen(Qt::black, 2));
-    }
-}
-
-void MainWindow::reconstructGraphFromData() {
-    std::vector<StationNode*> stations = tree->getAllStations();
-    
-    for (StationNode* node : stations) {
-        DraggableStation* station = new DraggableStation(node->id, node->x, node->y, 40);
-        scene->addItem(station);
-        
-        QGraphicsTextItem* labelItem = new QGraphicsTextItem(QString::fromStdString(node->name));
-        labelItem->setDefaultTextColor(Qt::black);
-        scene->addItem(labelItem);
-        
-        QRectF bounds = station->rect();
-        QPointF center = bounds.center() + station->pos();
-        labelItem->setPos(center.x() - labelItem->boundingRect().width() / 2,
-                          center.y() + bounds.height() / 2);
-        
-        station->setLabel(labelItem);
-        stationItems[node->id] = station;
-    }
-    
-    std::vector<int> allStations = graph->getAllStations();
-    for (int stationId : allStations) {
-        std::vector<int> neighbors = graph->getNeighbors(stationId);
-        for (int neighbor : neighbors) {
-            if (stationId < neighbor) {
-                std::pair<int, int> key = normalizeEdgePair(stationId, neighbor);
-                if (routeItems.find(key) == routeItems.end()) {
-                    DraggableStation* station1 = stationItems[stationId];
-                    DraggableStation* station2 = stationItems[neighbor];
-                    
-                    QRectF bounds1 = station1->rect();
-                    QRectF bounds2 = station2->rect();
-                    
-                    QPointF center1 = bounds1.center() + station1->pos();
-                    QPointF center2 = bounds2.center() + station2->pos();
-                    
-                    ClickableRoute* route = new ClickableRoute(stationId, neighbor, QLineF(center1, center2));
-                    scene->addItem(route);
-                    route->setZValue(-1);
-                    
-                    routeItems[key] = route;
-                }
-            }
-        }
-    }
-}
-
-void MainWindow::exportTraversals() {
-    QString filename = QFileDialog::getSaveFileName(this, "Export Traversals", "", "Text Files (*.txt);;All Files (*)");
-    
-    if (filename.isEmpty()) {
-        return;
-    }
-    
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Error", "Failed to open file for writing");
-        return;
-    }
-    
-    QTextStream out(&file);
-    
-    out << "=== STATION TREE TRAVERSALS ===\n\n";
-    
-    out << "In-order Traversal (BST):\n";
-    std::vector<StationNode*> stations = tree->getAllStations();
-    for (StationNode* node : stations) {
-        out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
-    }
-    out << "\n";
-    
-    out << "=== TRANSPORT GRAPH ===\n\n";
-    
-    std::vector<int> allStations = graph->getAllStations();
-    for (int stationId : allStations) {
-        StationNode* node = tree->findStation(stationId);
-        if (node) {
-            out << "Station " << node->id << " (" << QString::fromStdString(node->name) << "):\n";
-            std::vector<int> neighbors = graph->getNeighbors(stationId);
-            for (int neighbor : neighbors) {
-                StationNode* neighborNode = tree->findStation(neighbor);
-                if (neighborNode) {
-                    int weight = graph->getEdgeWeight(stationId, neighbor);
-                    out << "  -> " << neighborNode->id << " (" << QString::fromStdString(neighborNode->name) 
-                        << ") - " << weight << " min\n";
-                }
-            }
-            out << "\n";
-        }
-    }
-    
-    file.close();
-    QMessageBox::information(this, "Success", "Traversals exported successfully");
-}
-
-void MainWindow::generateReport() {
-    QString filename = QFileDialog::getSaveFileName(this, "Generate Report", "", "Text Files (*.txt);;All Files (*)");
-    
-    if (filename.isEmpty()) {
-        return;
-    }
-    
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Error", "Failed to open file for writing");
-        return;
-    }
-    
-    QTextStream out(&file);
-    
-    out << "======================================\n";
-    out << "    TRANSPORT NETWORK REPORT\n";
-    out << "======================================\n\n";
-    
-    std::vector<StationNode*> stations = tree->getAllStations();
-    out << "Total Stations: " << stations.size() << "\n\n";
-    
-    int totalRoutes = 0;
-    std::vector<int> allStations = graph->getAllStations();
-    for (int stationId : allStations) {
-        totalRoutes += graph->getNeighbors(stationId).size();
-    }
-    totalRoutes /= 2;
-    out << "Total Routes: " << totalRoutes << "\n\n";
-    
-    out << "--- STATIONS ---\n";
-    for (StationNode* node : stations) {
-        out << "ID: " << node->id << "\n";
-        out << "Name: " << QString::fromStdString(node->name) << "\n";
-        out << "Position: (" << node->x << ", " << node->y << ")\n";
-        
-        std::vector<int> neighbors = graph->getNeighbors(node->id);
-        out << "Connections: " << neighbors.size() << "\n";
-        
-        for (int neighbor : neighbors) {
-            StationNode* neighborNode = tree->findStation(neighbor);
-            if (neighborNode) {
-                int weight = graph->getEdgeWeight(node->id, neighbor);
-                out << "  -> " << QString::fromStdString(neighborNode->name) << " (" << weight << " min)\n";
-            }
-        }
-        out << "\n";
-    }
-    
-    out << "--- CONNECTIVITY ANALYSIS ---\n";
-    for (StationNode* node : stations) {
-        int connections = graph->getNeighbors(node->id).size();
-        out << QString::fromStdString(node->name) << ": " << connections << " connection";
-        if (connections != 1) out << "s";
-        out << "\n";
-    }
-    
-    file.close();
-    QMessageBox::information(this, "Success", "Report generated successfully");
-}
-
 std::pair<int, int> MainWindow::normalizeEdgePair(int a, int b) {
     if (a < b) {
         return std::make_pair(a, b);
@@ -575,20 +392,6 @@ void MainWindow::handleStationClick(DraggableStation* station) {
         selectedStationId = -1;
     }
 }
-
-void MainWindow::handleStationMoved(int stationId, QPointF newPos) {
-    tree->updatePosition(stationId, newPos.x(), newPos.y());
-    updateRoutePositions(stationId);
-}
-
-void MainWindow::handleStationDelete(int stationId) {
-    deleteStation(stationId);
-}
-
-void MainWindow::handleRouteDelete(int sourceId, int destId) {
-    deleteRoute(sourceId, destId);
-}
-
 void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     int originIndex = ui->cbOrigin->currentIndex();
     int destIndex = ui->cbDestination->currentIndex();
@@ -605,63 +408,6 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     if (originId == destId) {
         QMessageBox::warning(this, "Error", "Origin and destination must be different");
         return;
-    }
-    
-    clearHighlights();
-    
-    PathAlgorithm* algo = algorithms[algoIndex];
-    PathResult result = algo->findPath(graph, originId, destId);
-    
-    ui->pteOutput->clear();
-    ui->pteOutput->appendPlainText("Algorithm: " + QString::fromStdString(result.algorithmName));
-    ui->pteOutput->appendPlainText("Origin: " + ui->cbOrigin->currentText());
-    ui->pteOutput->appendPlainText("Destination: " + ui->cbDestination->currentText());
-    ui->pteOutput->appendPlainText("");
-    
-    if (result.found) {
-        highlightPath(result.path);
-        
-        ui->pteOutput->appendPlainText("Path found!");
-        ui->pteOutput->appendPlainText("Total cost: " + QString::number(result.totalCost) + " minutes");
-        ui->pteOutput->appendPlainText("");
-        
-        QString pathStr = "Path: ";
-        for (size_t i = 0; i < result.path.size(); i++) {
-            StationNode* node = tree->findStation(result.path[i]);
-            if (node) {
-                pathStr += QString::fromStdString(node->name);
-                if (i < result.path.size() - 1) {
-                    pathStr += " -> ";
-                }
-            }
-        }
-        ui->pteOutput->appendPlainText(pathStr);
-        ui->pteOutput->appendPlainText("");
-        ui->pteOutput->appendPlainText("Execution steps:");
-        
-        for (const std::string& step : result.steps) {
-            ui->pteOutput->appendPlainText(QString::fromStdString(step));
-        }
-    } else {
-        ui->pteOutput->appendPlainText("No path found!");
-        ui->pteOutput->appendPlainText("");
-        ui->pteOutput->appendPlainText("Execution steps:");
-        
-        for (const std::string& step : result.steps) {
-            ui->pteOutput->appendPlainText(QString::fromStdString(step));
-        }
-    }
-}
-
-void MainWindow::on_cbOrigin_currentIndexChanged(int index) {
-}
-
-void MainWindow::on_cbDestination_currentIndexChanged(int index) {
-}
-
-void MainWindow::on_cbAlgorithm_currentIndexChanged(int index) {
-}
-
 void MainWindow::on_actionSave_triggered() {
     QString filename = QFileDialog::getSaveFileName(this, "Save Network", "", "RoutyC Files (*.rty);;All Files (*)");
     
@@ -701,12 +447,86 @@ void MainWindow::on_actionLoad_triggered() {
                 }
             }
             nextStationId = maxId + 1;
-        }
+void MainWindow::on_actionExportTraversals_triggered() {
+    exportTraversals();
+}
+
+void MainWindow::on_actionGenerateReport_triggered() {
+    generateReport();
+}   
+    ui->pteOutput->clear();
+    ui->pteOutput->appendPlainText("Algorithm: " + QString::fromStdString(result.algorithmName));
+    ui->pteOutput->appendPlainText("Origin: " + ui->cbOrigin->currentText());
+    ui->pteOutput->appendPlainText("Destination: " + ui->cbDestination->currentText());
+    ui->pteOutput->appendPlainText("");
+    
+    if (result.found) {
+        highlightPath(result.path);
         
-        QMessageBox::information(this, "Success", "Network loaded successfully");
+        ui->pteOutput->appendPlainText("Path found!");
+        ui->pteOutput->appendPlainText("Total cost: " + QString::number(result.totalCost) + " minutes");
+        ui->pteOutput->appendPlainText("");
+        
+        QString pathStr = "Path: ";
+        for (size_t i = 0; i < result.path.size(); i++) {
+            StationNode* node = tree->findStation(result.path[i]);
+            if (node) {
+                pathStr += QString::fromStdString(node->name);
+                if (i < result.path.size() - 1) {
+                    pathStr += " -> ";
+                }
+            }
+        }
+        ui->pteOutput->appendPlainText(pathStr);
+        ui->pteOutput->appendPlainText("");
+        ui->pteOutput->appendPlainText("Execution steps:");
+        
+        for (const std::string& step : result.steps) {
+            ui->pteOutput->appendPlainText(QString::fromStdString(step));
+        }
     } else {
-        QMessageBox::critical(this, "Error", "Failed to load network");
+        ui->pteOutput->appendPlainText("No path found!");
+        ui->pteOutput->appendPlainText("");
+        ui->pteOutput->appendPlainText("Execution steps:");
+        
+        for (const std::string& step : result.steps) {
+            ui->pteOutput->appendPlainText(QString::fromStdString(step));
+        }
     }
+}   tree->updatePosition(stationId, newPos.x(), newPos.y());
+    updateRoutePositions(stationId);
+}
+
+void MainWindow::handleStationDelete(int stationId) {
+    deleteStation(stationId);
+}
+
+void MainWindow::handleRouteDelete(int sourceId, int destId) {
+    deleteRoute(sourceId, destId);
+}
+
+void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
+    std::cout << "pbCalculateWithAlgorithm clicked!" << std::endl;
+}
+
+void MainWindow::on_cbOrigin_currentIndexChanged(int index) {
+    std::cout << "cbOrigin changed to index: " << index << std::endl;
+}
+
+void MainWindow::on_cbDestination_currentIndexChanged(int index) {
+    std::cout << "cbDestination changed to index: " << index << std::endl;
+}
+
+void MainWindow::on_cbAlgorithm_currentIndexChanged(int index) {
+    std::cout << "cbAlgorithm changed to index: " << index << std::endl;
+}
+
+void MainWindow::on_actionSave_triggered() {
+    std::cout << "actionSave clicked!" << std::endl;
+}
+
+void MainWindow::on_actionLoad_triggered() {
+    std::cout << "actionLoad clicked!" << std::endl;
 }
 
 void MainWindow::on_actionClearCurrentDisplay_triggered() {
@@ -741,9 +561,9 @@ void MainWindow::on_actionDeleteStation_triggered() {
 }
 
 void MainWindow::on_actionExportTraversals_triggered() {
-    exportTraversals();
+    std::cout << "actionExportTraversals clicked!" << std::endl;
 }
 
 void MainWindow::on_actionGenerateReport_triggered() {
-    generateReport();
+    std::cout << "actionGenerateReport clicked!" << std::endl;
 }
