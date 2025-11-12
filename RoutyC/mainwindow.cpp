@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
       scene(nullptr), networkManager(nullptr),
       nextStationId(101), selectedStationId(-1) {
     ui->setupUi(this);
+    statusBar()->hide();
     setupScene();
     setupAlgorithms();
     updateGeneralInfo();
