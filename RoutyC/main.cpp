@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     }
     
     MainWindow w;
-    w.setWindowTitle("RoutyC - Ciudad de la mancha");
+    w.setWindowTitle("RoutyC");
     w.show();
     return QApplication::exec();
 }
