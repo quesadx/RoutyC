@@ -134,7 +134,7 @@
    </widget>
    <widget class="QMenu" name="menuReports">
     <property name="title">
-     <string>Reportes</string>
+     <string>Reporte</string>
     </property>
     <addaction name="actionExportTraversals"/>
     <addaction name="actionGenerateReport"/>

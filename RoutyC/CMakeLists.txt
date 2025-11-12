@@ -24,7 +24,11 @@ add_executable(RoutyC main.cpp
         pathalgorithm.cpp
         pathalgorithm.h
         filemanager.cpp
-        filemanager.h)
+        filemanager.h
+        graphicsitems.cpp
+        graphicsitems.h
+        networkmanager.cpp
+        networkmanager.h)
 target_link_libraries(RoutyC
         Qt::Core
         Qt::Gui
