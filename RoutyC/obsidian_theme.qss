@@ -235,7 +235,12 @@ QGraphicsView {
 }
 
 QGraphicsView:focus {
-    border: 1px solid #7c3aed;
+    border: 2px solid #7c3aed;
+    border-radius: 8px;
+}
+
+QGraphicsView::viewport {
+    border-radius: 7px;
 }
 
 /* === SCROLL BAR === */
@@ -337,6 +342,7 @@ QLineEdit:disabled {
 QDialog {
     background-color: #1e1e1e;
     color: #dcddde;
+    max-width: 500px;
 }
 
 QDialogButtonBox QPushButton {
@@ -352,11 +358,12 @@ QDialog QPushButton {
 QMessageBox {
     background-color: #1e1e1e;
     color: #dcddde;
+    max-width: 500px;
 }
 
 QMessageBox QLabel {
     color: #dcddde;
-    min-width: 300px;
+    max-width: 400px;
 }
 
 QMessageBox QPushButton {

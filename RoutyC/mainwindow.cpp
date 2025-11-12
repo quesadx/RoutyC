@@ -8,6 +8,8 @@
 #include <QTextStream>
 #include <QBrush>
 #include <QColor>
+#include <QPainter>
+#include <QPixmap>
 
 MainWindow::MainWindow(QWidget *parent) 
     : QMainWindow(parent), ui(new Ui::MainWindow), 
@@ -41,7 +43,16 @@ MainWindow::~MainWindow() {
 void MainWindow::setupScene() {
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, 800, 600);
-    scene->setBackgroundBrush(QBrush(QColor(26, 26, 26)));
+    
+    // Create dot pattern background
+    QPixmap dotPattern(20, 20);
+    dotPattern.fill(QColor(26, 26, 26));
+    QPainter painter(&dotPattern);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(QColor(60, 60, 60)));
+    painter.drawEllipse(9, 9, 2, 2);
+    
+    scene->setBackgroundBrush(QBrush(dotPattern));
     ui->gvArea->setScene(scene);
     
     networkManager = new NetworkManager(scene, this);
