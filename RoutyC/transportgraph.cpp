@@ -124,3 +124,76 @@ void TransportGraph::clear() {
     }
     adjacencyList.clear();
 }
+
+bool TransportGraph::isConnected(int source, int destination) {
+    if (adjacencyList.find(source) == adjacencyList.end() || 
+        adjacencyList.find(destination) == adjacencyList.end()) {
+        return false;
+    }
+    
+    if (source == destination) {
+        return true;
+    }
+    
+    std::vector<int> stations = getAllStations();
+    std::map<int, bool> visited;
+    for (int station : stations) {
+        visited[station] = false;
+    }
+    
+    std::vector<int> queue;
+    queue.push_back(source);
+    visited[source] = true;
+    
+    while (!queue.empty()) {
+        int current = queue[0];
+        queue.erase(queue.begin());
+        
+        if (current == destination) {
+            return true;
+        }
+        
+        std::vector<int> neighbors = getNeighbors(current);
+        for (int neighbor : neighbors) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                queue.push_back(neighbor);
+            }
+        }
+    }
+    
+    return false;
+}
+
+bool TransportGraph::isGraphFullyConnected() {
+    std::vector<int> stations = getAllStations();
+    if (stations.empty() || stations.size() == 1) {
+        return true;
+    }
+    
+    std::map<int, bool> visited;
+    for (int station : stations) {
+        visited[station] = false;
+    }
+    
+    std::vector<int> queue;
+    queue.push_back(stations[0]);
+    visited[stations[0]] = true;
+    int visitedCount = 1;
+    
+    while (!queue.empty()) {
+        int current = queue[0];
+        queue.erase(queue.begin());
+        
+        std::vector<int> neighbors = getNeighbors(current);
+        for (int neighbor : neighbors) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                visitedCount++;
+                queue.push_back(neighbor);
+            }
+        }
+    }
+    
+    return visitedCount == (int)stations.size();
+}

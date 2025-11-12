@@ -25,6 +25,8 @@ public:
     std::vector<int> getNeighbors(int stationId);
     std::vector<int> getAllStations();
     void clear();
+    bool isConnected(int source, int destination);
+    bool isGraphFullyConnected();
     
 private:
     std::map<int, std::vector<Edge*>> adjacencyList;

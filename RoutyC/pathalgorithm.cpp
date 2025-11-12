@@ -25,6 +25,7 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
     std::map<int, int> distances;
     std::map<int, int> previous;
     std::set<int> unvisited;
+    std::set<int> visited;
     
     for (int station : stations) {
         distances[station] = std::numeric_limits<int>::max();
@@ -33,6 +34,11 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
     
     distances[origin] = 0;
     result.steps.push_back("Starting Dijkstra from station " + std::to_string(origin));
+    
+    VisualizationStep initStep;
+    initStep.visitedNodes.push_back(origin);
+    initStep.description = "Starting from station " + std::to_string(origin);
+    result.visualSteps.push_back(initStep);
     
     while (!unvisited.empty()) {
         int current = -1;
@@ -50,8 +56,21 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
         }
         
         unvisited.erase(current);
+        visited.insert(current);
         result.steps.push_back("Visiting station " + std::to_string(current) + 
                               " (distance: " + std::to_string(distances[current]) + ")");
+        
+        VisualizationStep step;
+        for (int v : visited) {
+            step.visitedNodes.push_back(v);
+        }
+        for (int v : visited) {
+            if (previous.find(v) != previous.end()) {
+                step.visitedEdges.push_back({previous[v], v});
+            }
+        }
+        step.description = "Visiting station " + std::to_string(current) + " (distance: " + std::to_string(distances[current]) + ")";
+        result.visualSteps.push_back(step);
         
         if (current == destination) {
             result.found = true;
@@ -115,6 +134,7 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     std::map<int, bool> visited;
     std::map<int, int> previous;
     std::queue<int> queue;
+    std::vector<int> visitedOrder;
     
     for (int station : stations) {
         visited[station] = false;
@@ -122,13 +142,31 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     
     queue.push(origin);
     visited[origin] = true;
+    visitedOrder.push_back(origin);
     result.steps.push_back("Starting BFS from station " + std::to_string(origin));
+    
+    VisualizationStep initStep;
+    initStep.visitedNodes.push_back(origin);
+    initStep.description = "Starting BFS from station " + std::to_string(origin);
+    result.visualSteps.push_back(initStep);
     
     while (!queue.empty()) {
         int current = queue.front();
         queue.pop();
         
         result.steps.push_back("Visiting station " + std::to_string(current));
+        
+        VisualizationStep step;
+        for (int v : visitedOrder) {
+            step.visitedNodes.push_back(v);
+        }
+        for (int v : visitedOrder) {
+            if (previous.find(v) != previous.end()) {
+                step.visitedEdges.push_back({previous[v], v});
+            }
+        }
+        step.description = "Visiting station " + std::to_string(current);
+        result.visualSteps.push_back(step);
         
         if (current == destination) {
             result.found = true;
@@ -141,6 +179,7 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
                 visited[neighbor] = true;
                 previous[neighbor] = current;
                 queue.push(neighbor);
+                visitedOrder.push_back(neighbor);
                 result.steps.push_back("  Enqueued station " + std::to_string(neighbor));
             }
         }
@@ -197,11 +236,16 @@ PathResult DFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     
     result.steps.push_back("Starting DFS from station " + std::to_string(origin));
     
+    VisualizationStep initStep;
+    initStep.visitedNodes.push_back(origin);
+    initStep.description = "Starting DFS from station " + std::to_string(origin);
+    result.visualSteps.push_back(initStep);
+    
     for (int station : stations) {
         visited[station] = visitedMap[station];
     }
     
-    result.found = dfsRecursive(graph, origin, destination, visited, path, foundPath, result.steps);
+    result.found = dfsRecursive(graph, origin, destination, visited, path, foundPath, result.steps, result.visualSteps);
     
     if (result.found) {
         result.path = foundPath;
@@ -220,10 +264,21 @@ PathResult DFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
 
 bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destination,
                                 std::vector<bool>& visited, std::vector<int>& path,
-                                std::vector<int>& result, std::vector<std::string>& steps) {
+                                std::vector<int>& result, std::vector<std::string>& steps,
+                                std::vector<VisualizationStep>& visualSteps) {
     visited[current] = true;
     path.push_back(current);
     steps.push_back("Visiting station " + std::to_string(current));
+    
+    VisualizationStep step;
+    for (int node : path) {
+        step.visitedNodes.push_back(node);
+    }
+    for (size_t i = 1; i < path.size(); i++) {
+        step.visitedEdges.push_back({path[i-1], path[i]});
+    }
+    step.description = "Visiting station " + std::to_string(current);
+    visualSteps.push_back(step);
     
     if (current == destination) {
         result = path;
@@ -233,7 +288,7 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
     std::vector<int> neighbors = graph->getNeighbors(current);
     for (int neighbor : neighbors) {
         if (!visited[neighbor]) {
-            if (dfsRecursive(graph, neighbor, destination, visited, path, result, steps)) {
+            if (dfsRecursive(graph, neighbor, destination, visited, path, result, steps, visualSteps)) {
                 return true;
             }
         }
@@ -241,6 +296,17 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
     
     path.pop_back();
     steps.push_back("Backtracking from station " + std::to_string(current));
+    
+    VisualizationStep backtrackStep;
+    for (int node : path) {
+        backtrackStep.visitedNodes.push_back(node);
+    }
+    for (size_t i = 1; i < path.size(); i++) {
+        backtrackStep.visitedEdges.push_back({path[i-1], path[i]});
+    }
+    backtrackStep.description = "Backtracking from station " + std::to_string(current);
+    visualSteps.push_back(backtrackStep);
+    
     return false;
 }
 

@@ -49,7 +49,8 @@ public:
 private:
     bool dfsRecursive(TransportGraph* graph, int current, int destination, 
                       std::vector<bool>& visited, std::vector<int>& path, 
-                      std::vector<int>& result, std::vector<std::string>& steps);
+                      std::vector<int>& result, std::vector<std::string>& steps,
+                      std::vector<VisualizationStep>& visualSteps);
 };
 
 class PrimAlgorithm : public PathAlgorithm {

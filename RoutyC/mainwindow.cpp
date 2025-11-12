@@ -192,7 +192,15 @@ void MainWindow::handleStationClick(DraggableStation* station) {
                                               "Ingrese el tiempo de viaje (minutos):", 
                                               10, 1, 1000, 1, &ok);
         if (ok) {
+            bool wasConnectedBefore = networkManager->getGraph()->isGraphFullyConnected();
             networkManager->createRoute(firstId, secondId, travelTime);
+            bool isConnectedNow = networkManager->getGraph()->isGraphFullyConnected();
+            
+            if (!wasConnectedBefore && isConnectedNow) {
+                QMessageBox::information(this, "Grafo Conectado", 
+                                       "¡Excelente! El grafo ahora está completamente conectado. Todas las estaciones son alcanzables entre sí.");
+            }
+            
             updateGeneralInfo();
         }
         
@@ -395,6 +403,12 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     
     if (originId == destId) {
         QMessageBox::warning(this, "Error", "El origen y el destino deben ser diferentes");
+        return;
+    }
+    
+    if (!networkManager->getGraph()->isConnected(originId, destId)) {
+        QMessageBox::warning(this, "Grafo Desconectado", 
+                           "No existe conexión entre el origen y el destino. Por favor agregue rutas para conectar estas estaciones.");
         return;
     }
     
