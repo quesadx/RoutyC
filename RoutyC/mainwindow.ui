@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1019</width>
+    <height>679</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QGraphicsView" name="gvArea">
+        <property name="minimumSize">
+         <size>
+          <width>400</width>
+          <height>400</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPlainTextEdit" name="pteOutput">
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>300</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_5"/>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QComboBox" name="cbOrigin"/>
+          </item>
+          <item>
+           <widget class="QComboBox" name="cbDestination"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QRadioButton" name="rbDijkstra">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Dijkstra</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="rbFloydWarshall">
+            <property name="text">
+             <string>Floyd-Warshall</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pbCalculateWithAlgorithm">
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Realizar cálculo</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1019</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+    <addaction name="actionSave"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionClearCurrentDisplay"/>
+   </widget>
+   <widget class="QMenu" name="menuReports">
+    <property name="title">
+     <string>Reportes</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuRuta">
+    <property name="title">
+     <string>Ruta</string>
+    </property>
+    <addaction name="actionCreateRoute"/>
+    <addaction name="actionDeleteRoute"/>
+   </widget>
+   <widget class="QMenu" name="menuEstaci_n">
+    <property name="title">
+     <string>Estación</string>
+    </property>
+    <addaction name="actionCreateStation"/>
+    <addaction name="actionDeleteStation"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuReports"/>
+   <addaction name="menuRuta"/>
+   <addaction name="menuEstaci_n"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionSave">
+   <property name="text">
+    <string>Guardar</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Cargar</string>
+   </property>
+  </action>
+  <action name="actionCreateRoute">
+   <property name="text">
+    <string>Crear ruta</string>
+   </property>
+  </action>
+  <action name="actionDeleteRoute">
+   <property name="text">
+    <string>Eliminar ruta</string>
+   </property>
+  </action>
+  <action name="actionCreateStation">
+   <property name="text">
+    <string>Crear estación</string>
+   </property>
+  </action>
+  <action name="actionDeleteStation">
+   <property name="text">
+    <string>Eliminar estación</string>
+   </property>
+  </action>
+  <action name="actionClearCurrentDisplay">
+   <property name="text">
+    <string>Limpiar todo</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
