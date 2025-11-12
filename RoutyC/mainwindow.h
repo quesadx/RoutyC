@@ -18,13 +18,10 @@ private slots:
         // Button slots
         void on_pbCalculateWithAlgorithm_clicked();
 
-        // Radio button slots
-        void on_rbDijkstra_toggled(bool checked);
-        void on_rbFloydWarshall_toggled(bool checked);
-
         // ComboBox slots
         void on_cbOrigin_currentIndexChanged(int index);
         void on_cbDestination_currentIndexChanged(int index);
+        void on_cbAlgorithm_currentIndexChanged(int index);
 
         // Menu action slots
         void on_actionSave_triggered();
@@ -34,6 +31,8 @@ private slots:
         void on_actionDeleteRoute_triggered();
         void on_actionCreateStation_triggered();
         void on_actionDeleteStation_triggered();
+        void on_actionExportTraversals_triggered();
+        void on_actionGenerateReport_triggered();
 
 
 private:

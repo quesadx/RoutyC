@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_6">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
@@ -50,56 +50,66 @@
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+      </property>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="sizeConstraint">
+         <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QComboBox" name="cbOrigin"/>
+           <widget class="QComboBox" name="cbOrigin">
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="cbDestination"/>
+           <widget class="QComboBox" name="cbDestination">
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QRadioButton" name="rbDijkstra">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Dijkstra</string>
+           <widget class="QComboBox" name="cbAlgorithm">
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="rbFloydWarshall">
+           <widget class="QPushButton" name="pbCalculateWithAlgorithm">
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
-             <string>Floyd-Warshall</string>
+             <string>Realizar cálculo</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pbCalculateWithAlgorithm">
-        <property name="maximumSize">
-         <size>
-          <width>250</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Realizar cálculo</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </item>
@@ -126,6 +136,8 @@
     <property name="title">
      <string>Reportes</string>
     </property>
+    <addaction name="actionExportTraversals"/>
+    <addaction name="actionGenerateReport"/>
    </widget>
    <widget class="QMenu" name="menuRuta">
     <property name="title">
@@ -143,8 +155,8 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuReports"/>
-   <addaction name="menuRuta"/>
    <addaction name="menuEstaci_n"/>
+   <addaction name="menuRuta"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSave">
@@ -180,6 +192,16 @@
   <action name="actionClearCurrentDisplay">
    <property name="text">
     <string>Limpiar todo</string>
+   </property>
+  </action>
+  <action name="actionExportTraversals">
+   <property name="text">
+    <string>Exportar recorridos</string>
+   </property>
+  </action>
+  <action name="actionGenerateReport">
+   <property name="text">
+    <string>Generar reporte</string>
    </property>
   </action>
  </widget>
