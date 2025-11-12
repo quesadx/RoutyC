@@ -341,6 +341,11 @@ QDialog {
 
 QDialogButtonBox QPushButton {
     min-width: 80px;
+    icon-size: 0px;
+}
+
+QDialog QPushButton {
+    icon-size: 0px;
 }
 
 /* === MESSAGE BOX === */
@@ -357,6 +362,11 @@ QMessageBox QLabel {
 QMessageBox QPushButton {
     min-width: 80px;
     padding: 8px 20px;
+    icon-size: 0px;
+}
+
+QMessageBox QDialogButtonBox QPushButton {
+    icon-size: 0px;
 }
 
 /* === INPUT DIALOG === */
@@ -367,6 +377,14 @@ QInputDialog {
 
 QInputDialog QLabel {
     color: #dcddde;
+}
+
+QInputDialog QPushButton {
+    icon-size: 0px;
+}
+
+QInputDialog QDialogButtonBox QPushButton {
+    icon-size: 0px;
 }
 
 /* === FILE DIALOG === */
@@ -401,6 +419,11 @@ QFileDialog QTableView::item:selected {
 
 QFileDialog QPushButton {
     min-width: 80px;
+    icon-size: 0px;
+}
+
+QFileDialog QDialogButtonBox QPushButton {
+    icon-size: 0px;
 }
 
 /* === TOOLTIP === */

@@ -12,9 +12,14 @@
 MainWindow::MainWindow(QWidget *parent) 
     : QMainWindow(parent), ui(new Ui::MainWindow), 
       scene(nullptr), networkManager(nullptr),
-      nextStationId(101), selectedStationId(-1) {
+      nextStationId(101), selectedStationId(-1),
+      currentAnimationStep(0), isAnimating(false) {
     ui->setupUi(this);
     statusBar()->hide();
+    
+    animationTimer = new QTimer(this);
+    connect(animationTimer, &QTimer::timeout, this, &MainWindow::animateNextStep);
+    
     setupScene();
     setupAlgorithms();
     updateGeneralInfo();
@@ -36,6 +41,7 @@ MainWindow::~MainWindow() {
 void MainWindow::setupScene() {
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, 800, 600);
+    scene->setBackgroundBrush(QBrush(QColor(26, 26, 26)));
     ui->gvArea->setScene(scene);
     
     networkManager = new NetworkManager(scene, this);
@@ -44,12 +50,16 @@ void MainWindow::setupScene() {
     ui->gvArea->setRenderHint(QPainter::Antialiasing);
     ui->gvArea->setDragMode(QGraphicsView::ScrollHandDrag);
     ui->gvArea->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    ui->gvArea->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    ui->gvArea->setCacheMode(QGraphicsView::CacheBackground);
 }
 
 void MainWindow::setupAlgorithms() {
     algorithms.push_back(new DijkstraAlgorithm());
     algorithms.push_back(new BFSAlgorithm());
     algorithms.push_back(new DFSAlgorithm());
+    algorithms.push_back(new PrimAlgorithm());
+    algorithms.push_back(new KruskalAlgorithm());
     
     for (PathAlgorithm* algo : algorithms) {
         ui->cbAlgorithm->addItem(QString::fromStdString(algo->getName()));
@@ -192,6 +202,47 @@ void MainWindow::handleStationDelete(int stationId) {
     
     updateComboBoxes();
     updateGeneralInfo();
+}
+
+void MainWindow::handleStationRename(int stationId) {
+    StationNode* node = networkManager->getTree()->findStation(stationId);
+    if (!node) {
+        return;
+    }
+    
+    QString currentName = QString::fromStdString(node->name);
+    bool ok;
+    QString newName = QInputDialog::getText(this, "Renombrar Estación",
+                                           "Ingrese el nuevo nombre de la estación:",
+                                           QLineEdit::Normal, currentName, &ok);
+    
+    if (ok && !newName.isEmpty() && newName != currentName) {
+        std::vector<StationNode*> stations = networkManager->getAllStations();
+        for (StationNode* station : stations) {
+            if (station->id != stationId && 
+                QString::fromStdString(station->name) == newName) {
+                QMessageBox::warning(this, "Error", 
+                                   "Ya existe una estación con ese nombre.");
+                return;
+            }
+        }
+        
+        node->name = newName.toStdString();
+        
+        DraggableStation* stationItem = networkManager->getStation(stationId);
+        if (stationItem && stationItem->getLabel()) {
+            stationItem->getLabel()->setPlainText(newName);
+            
+            QRectF bounds = stationItem->rect();
+            QPointF center = bounds.center() + stationItem->pos();
+            stationItem->getLabel()->setPos(
+                center.x() - stationItem->getLabel()->boundingRect().width() / 2,
+                center.y() + bounds.height() / 2
+            );
+        }
+        
+        updateComboBoxes();
+    }
 }
 
 void MainWindow::handleRouteDelete(int sourceId, int destId) {
@@ -348,29 +399,12 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
     ui->pteOutput->appendPlainText("");
     
     if (result.found) {
-        networkManager->highlightPath(result.path);
-        
         ui->pteOutput->appendPlainText("¡Ruta encontrada!");
         ui->pteOutput->appendPlainText("Costo total: " + QString::number(result.totalCost) + " minutos");
         ui->pteOutput->appendPlainText("");
+        ui->pteOutput->appendPlainText("Visualización en progreso...");
         
-        QString pathStr = "Ruta: ";
-        for (size_t i = 0; i < result.path.size(); i++) {
-            StationNode* node = networkManager->getTree()->findStation(result.path[i]);
-            if (node) {
-                pathStr += QString::fromStdString(node->name);
-                if (i < result.path.size() - 1) {
-                    pathStr += " -> ";
-                }
-            }
-        }
-        ui->pteOutput->appendPlainText(pathStr);
-        ui->pteOutput->appendPlainText("");
-        ui->pteOutput->appendPlainText("Pasos de ejecución:");
-        
-        for (const std::string& step : result.steps) {
-            ui->pteOutput->appendPlainText(QString::fromStdString(step));
-        }
+        startAnimation(result);
     } else {
         ui->pteOutput->appendPlainText("¡No se encontró una ruta!");
         ui->pteOutput->appendPlainText("");
@@ -475,4 +509,74 @@ void MainWindow::on_actionExportTraversals_triggered() {
 
 void MainWindow::on_actionGenerateReport_triggered() {
     generateReport();
+}
+
+void MainWindow::startAnimation(const PathResult& result) {
+    if (isAnimating) {
+        return;
+    }
+    
+    currentResult = result;
+    currentAnimationStep = 0;
+    isAnimating = true;
+    networkManager->clearHighlights();
+    
+    animationTimer->start(500);
+}
+
+void MainWindow::animateNextStep() {
+    if (currentAnimationStep >= (int)currentResult.visualSteps.size()) {
+        finishAnimation();
+        return;
+    }
+    
+    visualizeStep(currentResult.visualSteps[currentAnimationStep]);
+    currentAnimationStep++;
+}
+
+void MainWindow::visualizeStep(const VisualizationStep& step) {
+    networkManager->clearHighlights();
+    
+    for (int nodeId : step.visitedNodes) {
+        auto it = networkManager->getStationItems().find(nodeId);
+        if (it != networkManager->getStationItems().end()) {
+            it->second->setBrush(QBrush(QColor(139, 92, 246)));
+        }
+    }
+    
+    for (const auto& edge : step.visitedEdges) {
+        std::pair<int, int> key = edge.first < edge.second ? 
+            std::make_pair(edge.first, edge.second) : 
+            std::make_pair(edge.second, edge.first);
+        
+        auto it = networkManager->getRouteItems().find(key);
+        if (it != networkManager->getRouteItems().end()) {
+            it->second->setPen(QPen(QColor(139, 92, 246), 3));
+        }
+    }
+    
+    ui->pteOutput->appendPlainText(QString::fromStdString(step.description));
+}
+
+void MainWindow::finishAnimation() {
+    animationTimer->stop();
+    isAnimating = false;
+    
+    networkManager->highlightPath(currentResult.path);
+    
+    ui->pteOutput->appendPlainText("");
+    ui->pteOutput->appendPlainText("¡Animación completada!");
+    ui->pteOutput->appendPlainText("");
+    
+    QString pathStr = "Ruta final: ";
+    for (size_t i = 0; i < currentResult.path.size(); i++) {
+        StationNode* node = networkManager->getTree()->findStation(currentResult.path[i]);
+        if (node) {
+            pathStr += QString::fromStdString(node->name);
+            if (i < currentResult.path.size() - 1) {
+                pathStr += " -> ";
+            }
+        }
+    }
+    ui->pteOutput->appendPlainText(pathStr);
 }

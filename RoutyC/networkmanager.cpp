@@ -5,6 +5,7 @@
 #include <QBrush>
 #include <QPen>
 #include <QColor>
+#include <QFont>
 
 NetworkManager::NetworkManager(QGraphicsScene* scene, MainWindow* window)
     : scene(scene), mainWindow(window) {
@@ -18,11 +19,11 @@ NetworkManager::~NetworkManager() {
 }
 
 void NetworkManager::createStation(int id, const QString& name, double x, double y) {
-    DraggableStation* station = new DraggableStation(id, x, y, 40, mainWindow);
+    DraggableStation* station = new DraggableStation(id, x, y, 32, mainWindow);
     scene->addItem(station);
     
     QGraphicsTextItem* labelItem = new QGraphicsTextItem(name);
-    labelItem->setDefaultTextColor(Qt::black);
+    labelItem->setDefaultTextColor(QColor(255, 255, 255));
     scene->addItem(labelItem);
     
     QRectF bounds = station->rect();
@@ -85,6 +86,16 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
     std::pair<int, int> key = normalizeEdgePair(id1, id2);
     routeItems[key] = route;
     
+    QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(travelTime));
+    weightLabel->setDefaultTextColor(QColor(156, 163, 175));
+    weightLabel->setFont(QFont("Arial", 10, QFont::Bold));
+    QPointF midPoint = (center1 + center2) / 2.0;
+    weightLabel->setPos(midPoint.x() - weightLabel->boundingRect().width() / 2,
+                        midPoint.y() + 5);
+    scene->addItem(weightLabel);
+    weightLabel->setZValue(0);
+    routeWeightLabels[key] = weightLabel;
+    
     graph->addEdge(id1, id2, travelTime);
 }
 
@@ -98,6 +109,13 @@ void NetworkManager::deleteRoute(int id1, int id2) {
     ClickableRoute* route = routeItems[key];
     scene->removeItem(route);
     delete route;
+    
+    if (routeWeightLabels.find(key) != routeWeightLabels.end()) {
+        QGraphicsTextItem* label = routeWeightLabels[key];
+        scene->removeItem(label);
+        delete label;
+        routeWeightLabels.erase(key);
+    }
     
     routeItems.erase(key);
     graph->removeEdge(id1, id2);
@@ -123,6 +141,13 @@ void NetworkManager::updateRoutePosition(int stationId, const QPointF& center) {
         if (routeItems.find(key) != routeItems.end()) {
             ClickableRoute* route = routeItems[key];
             route->setLine(QLineF(center, neighborCenter));
+            
+            if (routeWeightLabels.find(key) != routeWeightLabels.end()) {
+                QGraphicsTextItem* label = routeWeightLabels[key];
+                QPointF midPoint = (center + neighborCenter) / 2.0;
+                label->setPos(midPoint.x() - label->boundingRect().width() / 2,
+                             midPoint.y() + 5);
+            }
         }
     }
     
@@ -133,6 +158,7 @@ void NetworkManager::clearAll() {
     scene->clear();
     stationItems.clear();
     routeItems.clear();
+    routeWeightLabels.clear();
     tree->clear();
     graph->clear();
 }
@@ -141,11 +167,11 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
     std::vector<StationNode*> stations = sourceTree->getAllStations();
     
     for (StationNode* node : stations) {
-        DraggableStation* station = new DraggableStation(node->id, node->x, node->y, 40, mainWindow);
+        DraggableStation* station = new DraggableStation(node->id, node->x, node->y, 32, mainWindow);
         scene->addItem(station);
         
         QGraphicsTextItem* labelItem = new QGraphicsTextItem(QString::fromStdString(node->name));
-        labelItem->setDefaultTextColor(Qt::black);
+        labelItem->setDefaultTextColor(QColor(255, 255, 255));
         scene->addItem(labelItem);
         
         QRectF bounds = station->rect();
@@ -173,12 +199,22 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
                     QPointF center1 = bounds1.center() + station1->pos();
                     QPointF center2 = bounds2.center() + station2->pos();
                     
-                    ClickableRoute* route = new ClickableRoute(stationId, neighbor, 
-                                                               QLineF(center1, center2), mainWindow);
+                    QLineF line(center1, center2);
+                    ClickableRoute* route = new ClickableRoute(stationId, neighbor, line, mainWindow);
                     scene->addItem(route);
                     route->setZValue(-1);
-                    
                     routeItems[key] = route;
+                    
+                    int weight = sourceGraph->getEdgeWeight(stationId, neighbor);
+                    QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(weight));
+                    weightLabel->setDefaultTextColor(QColor(156, 163, 175));
+                    weightLabel->setFont(QFont("Arial", 10, QFont::Bold));
+                    QPointF midPoint = (center1 + center2) / 2.0;
+                    weightLabel->setPos(midPoint.x() - weightLabel->boundingRect().width() / 2,
+                                        midPoint.y() + 5);
+                    scene->addItem(weightLabel);
+                    weightLabel->setZValue(0);
+                    routeWeightLabels[key] = weightLabel;
                 }
             }
         }
@@ -202,6 +238,14 @@ DraggableStation* NetworkManager::getStation(int id) {
 
 std::vector<StationNode*> NetworkManager::getAllStations() {
     return tree->getAllStations();
+}
+
+std::map<int, DraggableStation*>& NetworkManager::getStationItems() {
+    return stationItems;
+}
+
+std::map<std::pair<int, int>, ClickableRoute*>& NetworkManager::getRouteItems() {
+    return routeItems;
 }
 
 void NetworkManager::highlightPath(const std::vector<int>& path) {

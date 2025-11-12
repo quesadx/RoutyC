@@ -247,3 +247,234 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
 std::string DFSAlgorithm::getName() const {
     return "DFS (Depth-First Search)";
 }
+
+PathResult PrimAlgorithm::findPath(TransportGraph* graph, int origin, int destination) {
+    PathResult result;
+    result.algorithmName = "Prim MST";
+    result.found = false;
+    
+    std::vector<int> stations = graph->getAllStations();
+    if (stations.empty()) {
+        result.steps.push_back("No stations in graph");
+        return result;
+    }
+    
+    std::map<int, bool> inMST;
+    std::map<int, int> key;
+    std::map<int, int> parent;
+    
+    for (int station : stations) {
+        inMST[station] = false;
+        key[station] = std::numeric_limits<int>::max();
+    }
+    
+    key[origin] = 0;
+    parent[origin] = -1;
+    result.steps.push_back("Starting Prim's MST from station " + std::to_string(origin));
+    
+    VisualizationStep initStep;
+    initStep.visitedNodes.push_back(origin);
+    initStep.description = "Starting from station " + std::to_string(origin);
+    result.visualSteps.push_back(initStep);
+    
+    for (size_t count = 0; count < stations.size(); count++) {
+        int u = -1;
+        int minKey = std::numeric_limits<int>::max();
+        
+        for (int station : stations) {
+            if (!inMST[station] && key[station] < minKey) {
+                minKey = key[station];
+                u = station;
+            }
+        }
+        
+        if (u == -1) break;
+        
+        inMST[u] = true;
+        result.steps.push_back("Added station " + std::to_string(u) + " to MST");
+        
+        VisualizationStep step;
+        for (int station : stations) {
+            if (inMST[station]) {
+                step.visitedNodes.push_back(station);
+            }
+        }
+        if (parent[u] != -1) {
+            step.visitedEdges.push_back({parent[u], u});
+        }
+        step.description = "Added station " + std::to_string(u);
+        result.visualSteps.push_back(step);
+        
+        std::vector<int> neighbors = graph->getNeighbors(u);
+        for (int v : neighbors) {
+            int weight = graph->getEdgeWeight(u, v);
+            if (!inMST[v] && weight < key[v]) {
+                key[v] = weight;
+                parent[v] = u;
+            }
+        }
+    }
+    
+    if (inMST[destination]) {
+        result.found = true;
+        int current = destination;
+        while (current != -1 && parent[current] != -1) {
+            result.path.insert(result.path.begin(), current);
+            current = parent[current];
+        }
+        if (current != -1) {
+            result.path.insert(result.path.begin(), current);
+        }
+        
+        int cost = 0;
+        for (size_t i = 0; i < result.path.size() - 1; i++) {
+            cost += graph->getEdgeWeight(result.path[i], result.path[i + 1]);
+        }
+        result.totalCost = cost;
+        result.steps.push_back("MST path found with cost: " + std::to_string(cost));
+    } else {
+        result.steps.push_back("Destination not reachable in MST");
+    }
+    
+    return result;
+}
+
+std::string PrimAlgorithm::getName() const {
+    return "Prim (MST)";
+}
+
+PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int destination) {
+    PathResult result;
+    result.algorithmName = "Kruskal MST";
+    result.found = false;
+    
+    std::vector<int> stations = graph->getAllStations();
+    if (stations.empty()) {
+        result.steps.push_back("No stations in graph");
+        return result;
+    }
+    
+    std::vector<std::pair<int, std::pair<int, int>>> edges;
+    for (int station : stations) {
+        std::vector<int> neighbors = graph->getNeighbors(station);
+        for (int neighbor : neighbors) {
+            if (station < neighbor) {
+                int weight = graph->getEdgeWeight(station, neighbor);
+                edges.push_back({weight, {station, neighbor}});
+            }
+        }
+    }
+    
+    std::sort(edges.begin(), edges.end());
+    
+    std::vector<int> parent(10000);
+    std::vector<int> rank(10000, 0);
+    for (int station : stations) {
+        parent[station] = station;
+    }
+    
+    result.steps.push_back("Starting Kruskal's MST algorithm");
+    std::vector<std::pair<int, int>> mstEdges;
+    
+    for (auto& edge : edges) {
+        int weight = edge.first;
+        int u = edge.second.first;
+        int v = edge.second.second;
+        
+        int setU = findParent(parent, u);
+        int setV = findParent(parent, v);
+        
+        if (setU != setV) {
+            mstEdges.push_back({u, v});
+            unionSets(parent, rank, setU, setV);
+            result.steps.push_back("Added edge " + std::to_string(u) + "-" + 
+                                  std::to_string(v) + " (weight: " + std::to_string(weight) + ")");
+            
+            VisualizationStep step;
+            std::set<int> connectedNodes;
+            for (auto& e : mstEdges) {
+                connectedNodes.insert(e.first);
+                connectedNodes.insert(e.second);
+                step.visitedEdges.push_back(e);
+            }
+            for (int node : connectedNodes) {
+                step.visitedNodes.push_back(node);
+            }
+            step.description = "Added edge " + std::to_string(u) + "-" + std::to_string(v);
+            result.visualSteps.push_back(step);
+        }
+    }
+    
+    std::map<int, std::vector<int>> mstGraph;
+    for (auto& edge : mstEdges) {
+        mstGraph[edge.first].push_back(edge.second);
+        mstGraph[edge.second].push_back(edge.first);
+    }
+    
+    std::map<int, bool> visited;
+    std::map<int, int> parentMap;
+    std::queue<int> queue;
+    
+    queue.push(origin);
+    visited[origin] = true;
+    
+    while (!queue.empty()) {
+        int current = queue.front();
+        queue.pop();
+        
+        if (current == destination) {
+            result.found = true;
+            break;
+        }
+        
+        for (int neighbor : mstGraph[current]) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                parentMap[neighbor] = current;
+                queue.push(neighbor);
+            }
+        }
+    }
+    
+    if (result.found) {
+        int current = destination;
+        while (current != origin) {
+            result.path.insert(result.path.begin(), current);
+            current = parentMap[current];
+        }
+        result.path.insert(result.path.begin(), origin);
+        
+        int cost = 0;
+        for (size_t i = 0; i < result.path.size() - 1; i++) {
+            cost += graph->getEdgeWeight(result.path[i], result.path[i + 1]);
+        }
+        result.totalCost = cost;
+        result.steps.push_back("MST path found with cost: " + std::to_string(cost));
+    } else {
+        result.steps.push_back("Destination not reachable in MST");
+    }
+    
+    return result;
+}
+
+int KruskalAlgorithm::findParent(std::vector<int>& parent, int node) {
+    if (parent[node] != node) {
+        parent[node] = findParent(parent, parent[node]);
+    }
+    return parent[node];
+}
+
+void KruskalAlgorithm::unionSets(std::vector<int>& parent, std::vector<int>& rank, int a, int b) {
+    if (rank[a] < rank[b]) {
+        parent[a] = b;
+    } else if (rank[a] > rank[b]) {
+        parent[b] = a;
+    } else {
+        parent[b] = a;
+        rank[a]++;
+    }
+}
+
+std::string KruskalAlgorithm::getName() const {
+    return "Kruskal (MST)";
+}

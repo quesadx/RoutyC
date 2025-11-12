@@ -77,10 +77,13 @@ void DraggableStation::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
 
 void DraggableStation::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
     QMenu menu;
+    QAction* renameAction = menu.addAction("Renombrar Estación");
     QAction* deleteAction = menu.addAction("Eliminar Estación");
     
     QAction* selected = menu.exec(event->screenPos());
-    if (selected == deleteAction && mainWindow) {
+    if (selected == renameAction && mainWindow) {
+        mainWindow->handleStationRename(stationId);
+    } else if (selected == deleteAction && mainWindow) {
         mainWindow->handleStationDelete(stationId);
     }
 }

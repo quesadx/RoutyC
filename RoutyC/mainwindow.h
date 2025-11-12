@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QGraphicsScene>
+#include <QTimer>
 #include <vector>
 #include "networkmanager.h"
 #include "pathalgorithm.h"
@@ -26,6 +27,7 @@ public:
     void handleStationClick(DraggableStation* station);
     void handleStationMoved(int stationId, QPointF newPos);
     void handleStationDelete(int stationId);
+    void handleStationRename(int stationId);
     void handleRouteDelete(int sourceId, int destId);
     void updateRoutePositionsDuringDrag(int stationId, const QPointF& center);
 
@@ -43,15 +45,20 @@ private slots:
     void on_actionDeleteStation_triggered();
     void on_actionExportTraversals_triggered();
     void on_actionGenerateReport_triggered();
+    void animateNextStep();
 
 private:
     Ui::MainWindow *ui;
     QGraphicsScene* scene;
     NetworkManager* networkManager;
     std::vector<PathAlgorithm*> algorithms;
+    QTimer* animationTimer;
     
     int nextStationId;
     int selectedStationId;
+    int currentAnimationStep;
+    PathResult currentResult;
+    bool isAnimating;
     
     void setupScene();
     void setupAlgorithms();
@@ -60,6 +67,9 @@ private:
     void updateGeneralInfo();
     void zoomIn();
     void zoomOut();
+    void startAnimation(const PathResult& result);
+    void visualizeStep(const VisualizationStep& step);
+    void finishAnimation();
     void exportTraversals();
     void generateReport();
 };

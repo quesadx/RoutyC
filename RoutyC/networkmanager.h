@@ -12,6 +12,7 @@
 class DraggableStation;
 class ClickableRoute;
 class QGraphicsScene;
+class QGraphicsTextItem;
 class MainWindow;
 
 class NetworkManager {
@@ -31,6 +32,8 @@ public:
     TransportGraph* getGraph();
     DraggableStation* getStation(int id);
     std::vector<StationNode*> getAllStations();
+    std::map<int, DraggableStation*>& getStationItems();
+    std::map<std::pair<int, int>, ClickableRoute*>& getRouteItems();
     
     void highlightPath(const std::vector<int>& path);
     void clearHighlights();
@@ -43,6 +46,7 @@ private:
     
     std::map<int, DraggableStation*> stationItems;
     std::map<std::pair<int, int>, ClickableRoute*> routeItems;
+    std::map<std::pair<int, int>, QGraphicsTextItem*> routeWeightLabels;
     
     std::pair<int, int> normalizeEdgePair(int a, int b);
 };
