@@ -111,6 +111,34 @@ void StationTree::collectNodes(StationNode* node, std::vector<StationNode*>& nod
     }
 }
 
+std::vector<StationNode*> StationTree::getPreOrderTraversal() {
+    std::vector<StationNode*> stations;
+    collectPreOrder(root, stations);
+    return stations;
+}
+
+void StationTree::collectPreOrder(StationNode* node, std::vector<StationNode*>& nodes) {
+    if (node != nullptr) {
+        nodes.push_back(node);
+        collectPreOrder(node->left, nodes);
+        collectPreOrder(node->right, nodes);
+    }
+}
+
+std::vector<StationNode*> StationTree::getPostOrderTraversal() {
+    std::vector<StationNode*> stations;
+    collectPostOrder(root, stations);
+    return stations;
+}
+
+void StationTree::collectPostOrder(StationNode* node, std::vector<StationNode*>& nodes) {
+    if (node != nullptr) {
+        collectPostOrder(node->left, nodes);
+        collectPostOrder(node->right, nodes);
+        nodes.push_back(node);
+    }
+}
+
 void StationTree::clear() {
     destroyTree(root);
     root = nullptr;

@@ -139,3 +139,48 @@ std::string FileManager::unescapeString(const std::string& str) {
     
     return result;
 }
+
+bool FileManager::loadClosures(const std::string& filename, TransportGraph* graph) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        return false;
+    }
+    
+    graph->clearClosures();
+    
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty()) {
+            continue;
+        }
+        
+        std::istringstream iss(line);
+        std::string id1Str, id2Str;
+        
+        std::getline(iss, id1Str, '|');
+        std::getline(iss, id2Str, '|');
+        
+        int id1 = std::stoi(id1Str);
+        int id2 = std::stoi(id2Str);
+        
+        graph->addClosure(id1, id2);
+    }
+    
+    file.close();
+    return true;
+}
+
+bool FileManager::saveClosures(const std::string& filename, TransportGraph* graph) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        return false;
+    }
+    
+    std::vector<std::pair<int, int>> closures = graph->getClosures();
+    for (const auto& closure : closures) {
+        file << closure.first << "|" << closure.second << "\n";
+    }
+    
+    file.close();
+    return true;
+}

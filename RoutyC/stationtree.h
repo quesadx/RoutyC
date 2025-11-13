@@ -25,6 +25,8 @@ public:
     StationNode* findStation(int id);
     void updatePosition(int id, double x, double y);
     std::vector<StationNode*> getAllStations();
+    std::vector<StationNode*> getPreOrderTraversal();
+    std::vector<StationNode*> getPostOrderTraversal();
     void clear();
     
 private:
@@ -35,6 +37,8 @@ private:
     StationNode* findMinNode(StationNode* node);
     StationNode* searchNode(StationNode* node, int id);
     void collectNodes(StationNode* node, std::vector<StationNode*>& nodes);
+    void collectPreOrder(StationNode* node, std::vector<StationNode*>& nodes);
+    void collectPostOrder(StationNode* node, std::vector<StationNode*>& nodes);
     void destroyTree(StationNode* node);
 };
 

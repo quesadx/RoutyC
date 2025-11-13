@@ -531,14 +531,139 @@ int KruskalAlgorithm::findParent(std::vector<int>& parent, int node) {
 }
 
 void KruskalAlgorithm::unionSets(std::vector<int>& parent, std::vector<int>& rank, int a, int b) {
-    if (rank[a] < rank[b]) {
-        parent[a] = b;
-    } else if (rank[a] > rank[b]) {
-        parent[b] = a;
+    int rootA = findParent(parent, a);
+    int rootB = findParent(parent, b);
+    
+    if (rank[rootA] < rank[rootB]) {
+        parent[rootA] = rootB;
+    } else if (rank[rootA] > rank[rootB]) {
+        parent[rootB] = rootA;
     } else {
-        parent[b] = a;
-        rank[a]++;
+        parent[rootB] = rootA;
+        rank[rootA]++;
     }
+}
+
+std::string FloydWarshallAlgorithm::getName() const {
+    return "Floyd-Warshall";
+}
+
+PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, int destination) {
+    PathResult result;
+    result.algorithmName = "Floyd-Warshall";
+    result.found = false;
+    
+    std::vector<int> stations = graph->getAllStations();
+    if (stations.empty()) {
+        result.steps.push_back("No stations in graph");
+        return result;
+    }
+    
+    int n = stations.size();
+    std::map<int, int> stationIndex;
+    std::map<int, int> indexStation;
+    
+    for (int i = 0; i < n; i++) {
+        stationIndex[stations[i]] = i;
+        indexStation[i] = stations[i];
+    }
+    
+    const int INF = std::numeric_limits<int>::max() / 2;
+    std::vector<std::vector<int>> dist(n, std::vector<int>(n, INF));
+    std::vector<std::vector<int>> next(n, std::vector<int>(n, -1));
+    
+    for (int i = 0; i < n; i++) {
+        dist[i][i] = 0;
+    }
+    
+    result.steps.push_back("Initializing distance matrix");
+    
+    for (int i = 0; i < n; i++) {
+        int stationId = indexStation[i];
+        std::vector<int> neighbors = graph->getNeighbors(stationId);
+        
+        for (int neighbor : neighbors) {
+            int j = stationIndex[neighbor];
+            int weight = graph->getEdgeWeight(stationId, neighbor);
+            dist[i][j] = weight;
+            next[i][j] = j;
+        }
+    }
+    
+    result.steps.push_back("Starting Floyd-Warshall algorithm");
+    
+    VisualizationStep initStep;
+    initStep.description = "Initializing all-pairs shortest paths";
+    result.visualSteps.push_back(initStep);
+    
+    for (int k = 0; k < n; k++) {
+        std::string stepDesc = "Processing intermediate vertex " + std::to_string(indexStation[k]);
+        result.steps.push_back(stepDesc);
+        
+        VisualizationStep step;
+        step.visitedNodes.push_back(indexStation[k]);
+        step.description = stepDesc;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (dist[i][k] != INF && dist[k][j] != INF) {
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        next[i][j] = next[i][k];
+                        
+                        step.visitedEdges.push_back({indexStation[i], indexStation[j]});
+                    }
+                }
+            }
+        }
+        
+        result.visualSteps.push_back(step);
+    }
+    
+    result.steps.push_back("Floyd-Warshall complete, computing path");
+    
+    int startIdx = stationIndex[origin];
+    int endIdx = stationIndex[destination];
+    
+    if (dist[startIdx][endIdx] == INF) {
+        result.steps.push_back("No path exists between " + std::to_string(origin) + " and " + std::to_string(destination));
+        result.found = false;
+        return result;
+    }
+    
+    result.path.push_back(origin);
+    int current = startIdx;
+    
+    while (current != endIdx) {
+        current = next[current][endIdx];
+        if (current == -1) {
+            result.found = false;
+            result.steps.push_back("Path reconstruction failed");
+            return result;
+        }
+        result.path.push_back(indexStation[current]);
+    }
+    
+    result.totalCost = dist[startIdx][endIdx];
+    result.found = true;
+    
+    std::string pathStr = "Path found: ";
+    for (size_t i = 0; i < result.path.size(); i++) {
+        pathStr += std::to_string(result.path[i]);
+        if (i < result.path.size() - 1) pathStr += " -> ";
+    }
+    pathStr += " (Total: " + std::to_string(result.totalCost) + ")";
+    result.steps.push_back(pathStr);
+    
+    VisualizationStep finalStep;
+    finalStep.visitedNodes = result.path;
+    for (size_t i = 0; i < result.path.size() - 1; i++) {
+        finalStep.visitedEdges.push_back({result.path[i], result.path[i + 1]});
+    }
+    finalStep.description = "Final path from " + std::to_string(origin) + " to " + std::to_string(destination);
+    result.visualSteps.push_back(finalStep);
+    
+    return result;
 }
 
 std::string KruskalAlgorithm::getName() const {

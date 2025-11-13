@@ -102,7 +102,9 @@ std::vector<int> TransportGraph::getNeighbors(int stationId) {
     std::vector<int> neighbors;
     if (adjacencyList.find(stationId) != adjacencyList.end()) {
         for (Edge* edge : adjacencyList[stationId]) {
-            neighbors.push_back(edge->destination);
+            if (!isClosed(stationId, edge->destination)) {
+                neighbors.push_back(edge->destination);
+            }
         }
     }
     return neighbors;
@@ -196,4 +198,35 @@ bool TransportGraph::isGraphFullyConnected() {
     }
     
     return visitedCount == (int)stations.size();
+}
+
+std::pair<int, int> TransportGraph::normalizeEdge(int a, int b) {
+    if (a > b) {
+        return {b, a};
+    }
+    return {a, b};
+}
+
+void TransportGraph::addClosure(int source, int destination) {
+    closedEdges.insert(normalizeEdge(source, destination));
+}
+
+void TransportGraph::removeClosure(int source, int destination) {
+    closedEdges.erase(normalizeEdge(source, destination));
+}
+
+void TransportGraph::clearClosures() {
+    closedEdges.clear();
+}
+
+bool TransportGraph::isClosed(int source, int destination) {
+    return closedEdges.find(normalizeEdge(source, destination)) != closedEdges.end();
+}
+
+std::vector<std::pair<int, int>> TransportGraph::getClosures() {
+    std::vector<std::pair<int, int>> result;
+    for (const auto& edge : closedEdges) {
+        result.push_back(edge);
+    }
+    return result;
 }

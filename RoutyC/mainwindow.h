@@ -72,6 +72,9 @@ private:
     void finishAnimation();
     void exportTraversals();
     void generateReport();
+    void autoLoadData();
+    void autoSaveData();
+    void closeEvent(QCloseEvent* event) override;
 };
 
 #endif

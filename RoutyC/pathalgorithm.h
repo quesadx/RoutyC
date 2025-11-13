@@ -69,4 +69,10 @@ private:
     void unionSets(std::vector<int>& parent, std::vector<int>& rank, int a, int b);
 };
 
+class FloydWarshallAlgorithm : public PathAlgorithm {
+public:
+    PathResult findPath(TransportGraph* graph, int origin, int destination) override;
+    std::string getName() const override;
+};
+
 #endif

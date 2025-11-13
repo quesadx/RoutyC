@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupScene();
     setupAlgorithms();
     updateGeneralInfo();
+    autoLoadData();
 }
 
 MainWindow::~MainWindow() {
@@ -69,6 +70,7 @@ void MainWindow::setupAlgorithms() {
     algorithms.push_back(new DijkstraAlgorithm());
     algorithms.push_back(new BFSAlgorithm());
     algorithms.push_back(new DFSAlgorithm());
+    algorithms.push_back(new FloydWarshallAlgorithm());
     algorithms.push_back(new PrimAlgorithm());
     algorithms.push_back(new KruskalAlgorithm());
     
@@ -274,12 +276,7 @@ void MainWindow::updateRoutePositionsDuringDrag(int stationId, const QPointF& ce
 }
 
 void MainWindow::exportTraversals() {
-    QString filename = QFileDialog::getSaveFileName(this, "Exportar Recorridos", "", 
-                                                    "Archivos de Texto (*.txt);;Todos los Archivos (*)");
-    
-    if (filename.isEmpty()) {
-        return;
-    }
+    QString filename = "recorridos_rutas.txt";
     
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -289,11 +286,25 @@ void MainWindow::exportTraversals() {
     
     QTextStream out(&file);
     
-    out << "=== STATION TREE TRAVERSALS ===\n\n";
-    out << "In-order Traversal (BST):\n";
+    out << "=== RECORRIDOS DEL ÁRBOL DE ESTACIONES ===\n\n";
     
-    std::vector<StationNode*> stations = networkManager->getAllStations();
-    for (StationNode* node : stations) {
+    out << "Recorrido In-Order (BST):\n";
+    std::vector<StationNode*> inOrder = networkManager->getAllStations();
+    for (StationNode* node : inOrder) {
+        out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
+    }
+    out << "\n";
+    
+    out << "Recorrido Pre-Order:\n";
+    std::vector<StationNode*> preOrder = networkManager->getTree()->getPreOrderTraversal();
+    for (StationNode* node : preOrder) {
+        out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
+    }
+    out << "\n";
+    
+    out << "Recorrido Post-Order:\n";
+    std::vector<StationNode*> postOrder = networkManager->getTree()->getPostOrderTraversal();
+    for (StationNode* node : postOrder) {
         out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
     }
     out << "\n";
@@ -321,16 +332,11 @@ void MainWindow::exportTraversals() {
     }
     
     file.close();
-    QMessageBox::information(this, "Éxito", "Recorridos exportados exitosamente");
+    QMessageBox::information(this, "Éxito", "Recorridos exportados exitosamente a recorridos_rutas.txt");
 }
 
 void MainWindow::generateReport() {
-    QString filename = QFileDialog::getSaveFileName(this, "Generar Reporte", "", 
-                                                    "Archivos de Texto (*.txt);;Todos los Archivos (*)");
-    
-    if (filename.isEmpty()) {
-        return;
-    }
+    QString filename = "reportes.txt";
     
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -385,7 +391,7 @@ void MainWindow::generateReport() {
     }
     
     file.close();
-    QMessageBox::information(this, "Éxito", "Reporte generado exitosamente");
+    QMessageBox::information(this, "Éxito", "Reporte generado exitosamente en reportes.txt");
 }
 
 void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
@@ -520,7 +526,45 @@ void MainWindow::on_actionDeleteRoute_triggered() {
 
 void MainWindow::on_actionCreateStation_triggered() {
     QMessageBox::information(this, "Crear Estación", 
-                           "Haga doble clic en un área vacía para crear una estación.");
+                           "Haga doble clic en un área vacía del mapa para crear una estación.");
+}
+
+void MainWindow::autoLoadData() {
+    if (QFile::exists("estaciones.txt")) {
+        if (FileManager::loadFromFile("estaciones.txt", networkManager->getTree(), 
+                                     networkManager->getGraph())) {
+            networkManager->reconstructFromData(networkManager->getTree(), 
+                                               networkManager->getGraph());
+            updateComboBoxes();
+            updateGeneralInfo();
+        }
+    }
+    
+    if (QFile::exists("rutas.txt")) {
+        FileManager::loadFromFile("rutas.txt", networkManager->getTree(), 
+                                 networkManager->getGraph());
+        networkManager->reconstructFromData(networkManager->getTree(), 
+                                           networkManager->getGraph());
+        updateComboBoxes();
+        updateGeneralInfo();
+    }
+    
+    if (QFile::exists("cierres.txt")) {
+        FileManager::loadClosures("cierres.txt", networkManager->getGraph());
+    }
+}
+
+void MainWindow::autoSaveData() {
+    FileManager::saveToFile("estaciones.txt", networkManager->getTree(), 
+                           networkManager->getGraph());
+    FileManager::saveToFile("rutas.txt", networkManager->getTree(), 
+                           networkManager->getGraph());
+    FileManager::saveClosures("cierres.txt", networkManager->getGraph());
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+    autoSaveData();
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::on_actionDeleteStation_triggered() {

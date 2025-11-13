@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 struct Edge {
     int destination;
@@ -27,11 +28,18 @@ public:
     void clear();
     bool isConnected(int source, int destination);
     bool isGraphFullyConnected();
+    void addClosure(int source, int destination);
+    void removeClosure(int source, int destination);
+    void clearClosures();
+    bool isClosed(int source, int destination);
+    std::vector<std::pair<int, int>> getClosures();
     
 private:
     std::map<int, std::vector<Edge*>> adjacencyList;
+    std::set<std::pair<int, int>> closedEdges;
     
     void removeEdgeInternal(int source, int destination);
+    std::pair<int, int> normalizeEdge(int a, int b);
 };
 
 #endif
