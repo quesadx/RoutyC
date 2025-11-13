@@ -58,11 +58,4 @@ Sample data and runtime files are present in the `build/` folder (for example `r
 No license file found. Add a `LICENSE` if you want to publish or share the project under specific terms.
 
 ---
-
-If you'd like, I can:
-- add a minimal `LICENSE` (MIT/Apache/etc.),
-- include a sample screenshot in `docs/` and link it here, or
-- add a short `run.sh` wrapper that sets runtime data paths before launching.
-
-Tell me which of those (if any) you want next.
  
