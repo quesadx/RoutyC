@@ -46,15 +46,41 @@ void MainWindow::setupScene() {
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, 800, 600);
     
-    // Para el fondo del QGraphicsView con puntitos
-    QPixmap dotPattern(20, 20);
-    dotPattern.fill(QColor(26, 26, 26));
-    QPainter painter(&dotPattern);
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush(QColor(60, 60, 60)));
-    painter.drawEllipse(9, 9, 2, 2);
+    // City/Map pattern background
+    QPixmap cityPattern(100, 100);
+    cityPattern.fill(QColor(26, 26, 26));
+    QPainter painter(&cityPattern);
+    painter.setRenderHint(QPainter::Antialiasing);
     
-    scene->setBackgroundBrush(QBrush(dotPattern));
+    // Main streets (thicker lines)
+    painter.setPen(QPen(QColor(45, 45, 45), 2));
+    painter.drawLine(0, 33, 100, 33);
+    painter.drawLine(0, 66, 100, 66);
+    painter.drawLine(33, 0, 33, 100);
+    painter.drawLine(66, 0, 66, 100);
+    
+    // Secondary streets (thinner lines)
+    painter.setPen(QPen(QColor(38, 38, 38), 1));
+    painter.drawLine(0, 16, 100, 16);
+    painter.drawLine(0, 50, 100, 50);
+    painter.drawLine(0, 83, 100, 83);
+    painter.drawLine(16, 0, 16, 100);
+    painter.drawLine(50, 0, 50, 100);
+    painter.drawLine(83, 0, 83, 100);
+    
+    // Small building blocks (rectangles)
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(QColor(32, 32, 32)));
+    painter.drawRect(5, 5, 8, 8);
+    painter.drawRect(20, 5, 8, 8);
+    painter.drawRect(38, 5, 8, 8);
+    painter.drawRect(5, 38, 8, 8);
+    painter.drawRect(38, 38, 6, 6);
+    painter.drawRect(71, 20, 8, 8);
+    painter.drawRect(71, 71, 8, 8);
+    painter.drawRect(20, 71, 8, 8);
+    
+    scene->setBackgroundBrush(QBrush(cityPattern));
     ui->gvArea->setScene(scene);
     
     networkManager = new NetworkManager(scene, this);
