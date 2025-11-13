@@ -6,6 +6,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 
 find_package(Qt6 COMPONENTS
         Core
@@ -29,6 +31,8 @@ add_executable(RoutyC main.cpp
         graphicsitems.h
         networkmanager.cpp
         networkmanager.h
+        customgraphicsview.cpp
+        customgraphicsview.h
         resources.qrc)
 target_link_libraries(RoutyC
         Qt::Core
