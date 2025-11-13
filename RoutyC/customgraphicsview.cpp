@@ -43,7 +43,7 @@ void CustomGraphicsView::updateGlowAnimation() {
 }
 
 void CustomGraphicsView::smoothGlowPosition() {
-    double smoothFactor = 0.15;
+    double smoothFactor = 0.12;
     
     double dx = targetMousePos.x() - currentGlowPos.x();
     double dy = targetMousePos.y() - currentGlowPos.y();
@@ -60,22 +60,24 @@ void CustomGraphicsView::paintEvent(QPaintEvent* event) {
         painter.setRenderHint(QPainter::Antialiasing);
         painter.setCompositionMode(QPainter::CompositionMode_Plus);
         
-        QRadialGradient gradient(currentGlowPos, 150);
-        gradient.setColorAt(0.0, QColor(124, 58, 237, 80));
-        gradient.setColorAt(0.3, QColor(124, 58, 237, 40));
-        gradient.setColorAt(0.6, QColor(124, 58, 237, 15));
+        QRadialGradient gradient(currentGlowPos, 180);
+        gradient.setColorAt(0.0, QColor(124, 58, 237, 35));
+        gradient.setColorAt(0.25, QColor(124, 58, 237, 25));
+        gradient.setColorAt(0.5, QColor(124, 58, 237, 15));
+        gradient.setColorAt(0.75, QColor(124, 58, 237, 8));
         gradient.setColorAt(1.0, QColor(124, 58, 237, 0));
         
         painter.setBrush(gradient);
         painter.setPen(Qt::NoPen);
-        painter.drawEllipse(currentGlowPos, 150, 150);
+        painter.drawEllipse(currentGlowPos, 180, 180);
         
-        QRadialGradient innerGlow(currentGlowPos, 80);
-        innerGlow.setColorAt(0.0, QColor(168, 85, 247, 60));
-        innerGlow.setColorAt(0.5, QColor(147, 51, 234, 30));
+        QRadialGradient innerGlow(currentGlowPos, 90);
+        innerGlow.setColorAt(0.0, QColor(168, 85, 247, 30));
+        innerGlow.setColorAt(0.4, QColor(147, 51, 234, 18));
+        innerGlow.setColorAt(0.7, QColor(124, 58, 237, 10));
         innerGlow.setColorAt(1.0, QColor(124, 58, 237, 0));
         
         painter.setBrush(innerGlow);
-        painter.drawEllipse(currentGlowPos, 80, 80);
+        painter.drawEllipse(currentGlowPos, 90, 90);
     }
 }

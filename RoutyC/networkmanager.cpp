@@ -169,6 +169,16 @@ void NetworkManager::updateRoutePosition(int stationId, const QPointF& center) {
     tree->updatePosition(stationId, center.x(), center.y());
 }
 
+void NetworkManager::updateRouteVisualState(int id1, int id2) {
+    std::pair<int, int> key = makeRoutePair(id1, id2);
+    
+    if (routes.find(key) != routes.end()) {
+        ClickableRoute* route = routes[key];
+        bool isBlocked = graph->isRouteBlocked(id1, id2);
+        route->setBlocked(isBlocked);
+    }
+}
+
 void NetworkManager::clearAll() {
     scene->clear();
     stations.clear();
@@ -219,6 +229,9 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
                     scene->addItem(route);
                     route->setZValue(-1);
                     routes[key] = route;
+                    
+                    bool isBlocked = sourceGraph->isRouteBlocked(stationId, neighbor);
+                    route->setBlocked(isBlocked);
                     
                     int weight = sourceGraph->getRouteTime(stationId, neighbor);
                     QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(weight));

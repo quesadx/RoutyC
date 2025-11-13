@@ -273,6 +273,19 @@ void MainWindow::handleRouteDelete(int sourceId, int destId) {
     updateGeneralInfo();
 }
 
+void MainWindow::handleRouteToggleClosure(int sourceId, int destId) {
+    TransportGraph* graph = networkManager->getGraph();
+    
+    if (graph->isRouteBlocked(sourceId, destId)) {
+        graph->unblockRoute(sourceId, destId);
+    } else {
+        graph->blockRoute(sourceId, destId);
+    }
+    
+    networkManager->updateRouteVisualState(sourceId, destId);
+    autoSaveData();
+}
+
 void MainWindow::updateRoutePositionsDuringDrag(int stationId, const QPointF& center) {
     networkManager->updateRoutePosition(stationId, center);
 }

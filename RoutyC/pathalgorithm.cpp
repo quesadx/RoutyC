@@ -210,7 +210,7 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
             result.path.insert(result.path.begin(), current);
             if (previous.find(current) == previous.end()) {
                 result.found = false;
-                result.steps.push_back("Path reconstruction failed");
+                result.steps.push_back("Falló la reconstrucción de la ruta");
                 return result;
             }
             int prev = previous[current];
@@ -238,7 +238,7 @@ PathResult DFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     
     vector<int> stations = graph->getAllStations();
     if (stations.empty()) {
-        result.steps.push_back("No stations in graph");
+        result.steps.push_back("No hay estaciones en el grafo");
         return result;
     }
     
@@ -374,7 +374,7 @@ PathResult PrimAlgorithm::findPath(TransportGraph* graph, int origin, int destin
         if (u == -1) break;
         
         inMST[u] = true;
-        result.steps.push_back("Added station " + to_string(u) + " to MST");
+        result.steps.push_back("Estación " + to_string(u) + " añadida al MST");
         
         VisualizationStep step;
         for (int station : stations) {
@@ -385,7 +385,7 @@ PathResult PrimAlgorithm::findPath(TransportGraph* graph, int origin, int destin
         if (parent[u] != -1) {
             step.visitedEdges.push_back({parent[u], u});
         }
-        step.description = "Added station " + to_string(u);
+        step.description = "Estación " + to_string(u) + " añadida al MST";
         result.visualSteps.push_back(step);
         
         vector<int> neighbors = graph->getConnectedStations(u);
@@ -414,9 +414,9 @@ PathResult PrimAlgorithm::findPath(TransportGraph* graph, int origin, int destin
             cost += graph->getRouteTime(result.path[i], result.path[i + 1]);
         }
         result.totalCost = cost;
-        result.steps.push_back("MST path found with cost: " + to_string(cost));
+        result.steps.push_back("Camino MST encontrado con costo: " + to_string(cost));
     } else {
-        result.steps.push_back("Destination not reachable in MST");
+        result.steps.push_back("Destino no alcanzable en MST");
     }
     
     return result;
@@ -428,12 +428,12 @@ string PrimAlgorithm::getName() const {
 
 PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int destination) {
     PathResult result;
-    result.algorithmName = "Kruskal MST";
+    result.algorithmName = "Kruskal (MST)";
     result.found = false;
     
     vector<int> stations = graph->getAllStations();
     if (stations.empty()) {
-        result.steps.push_back("No stations in graph");
+        result.steps.push_back("No hay estaciones en el grafo");
         return result;
     }
     
@@ -456,7 +456,7 @@ PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int des
         parent[station] = station;
     }
     
-    result.steps.push_back("Iniciando MST de Kruskal");
+    result.steps.push_back("Iniciando MST Kruskal");
     vector<pair<int, int>> mstEdges;
     
     for (auto& edge : edges) {
@@ -470,8 +470,8 @@ PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int des
         if (setU != setV) {
             mstEdges.push_back({u, v});
             unionSets(parent, rank, setU, setV);
-            result.steps.push_back("Added edge " + to_string(u) + "-" + 
-                                  to_string(v) + " (weight: " + to_string(weight) + ")");
+            result.steps.push_back("Ruta añadida " + to_string(u) + "-" + 
+                                  to_string(v) + " (peso: " + to_string(weight) + ")");
             
             VisualizationStep step;
             set<int> connectedNodes;
@@ -483,7 +483,7 @@ PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int des
             for (int node : connectedNodes) {
                 step.visitedNodes.push_back(node);
             }
-            step.description = "Added edge " + to_string(u) + "-" + to_string(v);
+            step.description = "Ruta añadida " + to_string(u) + "-" + to_string(v);
             result.visualSteps.push_back(step);
         }
     }
@@ -532,9 +532,9 @@ PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int des
             cost += graph->getRouteTime(result.path[i], result.path[i + 1]);
         }
         result.totalCost = cost;
-        result.steps.push_back("MST path found with cost: " + to_string(cost));
+        result.steps.push_back("Camino MST encontrado con costo: " + to_string(cost));
     } else {
-        result.steps.push_back("Destination not reachable in MST");
+        result.steps.push_back("Destino no alcanzable en MST");
     }
     
     return result;

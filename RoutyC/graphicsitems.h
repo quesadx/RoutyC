@@ -5,6 +5,7 @@
 #include <QGraphicsTextItem>
 #include <QGraphicsLineItem>
 #include <QPointF>
+#include <QTimer>
 
 class MainWindow;
 
@@ -22,6 +23,8 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
     
 private:
     int stationId;
@@ -29,6 +32,11 @@ private:
     MainWindow* mainWindow;
     bool wasDragged;
     QPointF pressPos;
+    QTimer* scaleTimer;
+    qreal currentScale;
+    qreal targetScale;
+    
+    void updateScale();
 };
 
 class ClickableRoute : public QGraphicsLineItem {
@@ -38,6 +46,9 @@ public:
     int getSourceId() const;
     int getDestId() const;
     void setMainWindow(MainWindow* window);
+    void setBlocked(bool blocked);
+    bool isBlocked() const;
+    void updateVisualState();
     
 protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
@@ -46,6 +57,7 @@ private:
     int sourceId;
     int destId;
     MainWindow* mainWindow;
+    bool blocked;
 };
 
 #endif
