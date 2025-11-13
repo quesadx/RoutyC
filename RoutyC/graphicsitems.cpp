@@ -143,11 +143,14 @@ QPainterPath ClickableRoute::shape() const {
 
 void ClickableRoute::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
     QMenu menu;
+    QAction* modifyWeightAction = menu.addAction("Modificar Tiempo de Viaje");
     QAction* toggleClosureAction = menu.addAction(blocked ? "Desbloquear Ruta" : "Bloquear Ruta (Cierre)");
     QAction* deleteAction = menu.addAction("Eliminar Ruta");
     
     QAction* selected = menu.exec(event->screenPos());
-    if (selected == toggleClosureAction && mainWindow) {
+    if (selected == modifyWeightAction && mainWindow) {
+        mainWindow->handleRouteModifyWeight(sourceId, destId);
+    } else if (selected == toggleClosureAction && mainWindow) {
         mainWindow->handleRouteToggleClosure(sourceId, destId);
     } else if (selected == deleteAction && mainWindow) {
         mainWindow->handleRouteDelete(sourceId, destId);

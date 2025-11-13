@@ -30,6 +30,7 @@ public:
     void handleStationRename(int stationId);
     void handleRouteDelete(int sourceId, int destId);
     void handleRouteToggleClosure(int sourceId, int destId);
+    void handleRouteModifyWeight(int sourceId, int destId);
     void updateRoutePositionsDuringDrag(int stationId, const QPointF& center);
 
 private slots:

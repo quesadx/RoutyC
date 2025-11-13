@@ -44,41 +44,52 @@ MainWindow::~MainWindow() {
 
 void MainWindow::setupScene() {
     scene = new QGraphicsScene(this);
-    scene->setSceneRect(0, 0, 800, 600);
+    scene->setSceneRect(-2000, -2000, 4800, 4600);
     
-    // City/Map pattern background
-    QPixmap cityPattern(100, 100);
+    // Parte que dibuja la "ciudad" a puro qt
+    QPixmap cityPattern(240, 240);
     cityPattern.fill(QColor(26, 26, 26));
     QPainter painter(&cityPattern);
     painter.setRenderHint(QPainter::Antialiasing);
     
-    // Main streets (thicker lines)
-    painter.setPen(QPen(QColor(45, 45, 45), 2));
-    painter.drawLine(0, 33, 100, 33);
-    painter.drawLine(0, 66, 100, 66);
-    painter.drawLine(33, 0, 33, 100);
-    painter.drawLine(66, 0, 66, 100);
-    
-    // Secondary streets (thinner lines)
-    painter.setPen(QPen(QColor(38, 38, 38), 1));
-    painter.drawLine(0, 16, 100, 16);
-    painter.drawLine(0, 50, 100, 50);
-    painter.drawLine(0, 83, 100, 83);
-    painter.drawLine(16, 0, 16, 100);
-    painter.drawLine(50, 0, 50, 100);
-    painter.drawLine(83, 0, 83, 100);
-    
-    // Small building blocks (rectangles)
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QBrush(QColor(32, 32, 32)));
-    painter.drawRect(5, 5, 8, 8);
-    painter.drawRect(20, 5, 8, 8);
-    painter.drawRect(38, 5, 8, 8);
-    painter.drawRect(5, 38, 8, 8);
-    painter.drawRect(38, 38, 6, 6);
-    painter.drawRect(71, 20, 8, 8);
-    painter.drawRect(71, 71, 8, 8);
-    painter.drawRect(20, 71, 8, 8);
+    painter.setBrush(QBrush(QColor(25, 35, 48)));
+    
+    painter.setPen(QPen(QColor(50, 50, 52), 8));
+    painter.drawLine(0, 80, 240, 80);
+    
+    painter.setPen(QPen(QColor(42, 42, 44), 4));
+    painter.drawLine(0, 150, 240, 150);
+    painter.drawLine(70, 0, 70, 240);
+    painter.drawLine(190, 0, 190, 240);
+    
+    painter.setPen(QPen(QColor(36, 36, 38), 2));
+    painter.drawLine(0, 30, 130, 30);
+    painter.drawLine(0, 116, 240, 116);
+    painter.drawLine(0, 190, 240, 190);
+    painter.drawLine(30, 0, 30, 240);
+    painter.drawLine(120, 90, 120, 240);
+    
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(QColor(34, 34, 36)));
+    painter.drawRect(8, 6, 18, 18);
+    painter.drawRect(36, 6, 26, 18);
+    painter.drawRect(170, 6, 16, 24);
+    painter.drawRect(8, 90, 28, 20);
+    painter.drawRect(80, 90, 32, 20);
+    
+    painter.setBrush(QBrush(QColor(31, 31, 33)));
+    painter.drawRect(8, 160, 18, 24);
+    painter.drawRect(36, 124, 12, 20);
+    painter.drawRect(200, 96, 20, 16);
+    painter.drawRect(200, 160, 16, 24);
+    
+    painter.setBrush(QBrush(QColor(29, 29, 31)));
+    painter.drawRect(80, 40, 10, 10);
+    painter.drawRect(100, 40, 8, 8);
+    painter.drawRect(80, 200, 10, 12);
+    painter.drawRect(130, 124, 8, 10);
+    painter.drawRect(150, 200, 10, 10);
     
     scene->setBackgroundBrush(QBrush(cityPattern));
     ui->gvArea->setScene(scene);
@@ -324,6 +335,23 @@ void MainWindow::handleRouteToggleClosure(int sourceId, int destId) {
     
     if (!currentFilePath.isEmpty()) {
         autoSaveData();
+    }
+}
+
+void MainWindow::handleRouteModifyWeight(int sourceId, int destId) {
+    TransportGraph* graph = networkManager->getGraph();
+    int currentWeight = graph->getRouteTime(sourceId, destId);
+    
+    bool ok;
+    int newWeight = QInputDialog::getInt(this, "Modificar Ruta", 
+                                         "Ingrese el nuevo tiempo de viaje (minutos):", 
+                                         currentWeight, 1, 1000, 1, &ok);
+    if (ok && newWeight != currentWeight) {
+        networkManager->createRoute(sourceId, destId, newWeight);
+        
+        if (!currentFilePath.isEmpty()) {
+            autoSaveData();
+        }
     }
 }
 
@@ -577,18 +605,27 @@ void MainWindow::on_actionClearCurrentDisplay_triggered() {
 }
 
 void MainWindow::on_actionCreateRoute_triggered() {
-    QMessageBox::information(this, "Crear Ruta", 
-                           "Haga clic en dos estaciones en el mapa para crear una ruta.");
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Crear Ruta");
+    msgBox.setText("Haga clic en dos estaciones en el mapa para crear una ruta.");
+    msgBox.setIcon(QMessageBox::NoIcon);
+    msgBox.exec();
 }
 
 void MainWindow::on_actionDeleteRoute_triggered() {
-    QMessageBox::information(this, "Eliminar Ruta", 
-                           "Haga clic derecho en una línea de ruta para eliminarla.");
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Eliminar Ruta");
+    msgBox.setText("Haga clic derecho en una línea de ruta para eliminarla.");
+    msgBox.setIcon(QMessageBox::NoIcon);
+    msgBox.exec();
 }
 
 void MainWindow::on_actionCreateStation_triggered() {
-    QMessageBox::information(this, "Crear Estación", 
-                           "Haga doble clic en un área vacía del mapa para crear una estación.");
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Crear Estación");
+    msgBox.setText("Haga doble clic en un área vacía del mapa para crear una estación.");
+    msgBox.setIcon(QMessageBox::NoIcon);
+    msgBox.exec();
 }
 
 void MainWindow::autoLoadData() {
@@ -622,8 +659,11 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 }
 
 void MainWindow::on_actionDeleteStation_triggered() {
-    QMessageBox::information(this, "Eliminar Estación", 
-                           "Haga clic derecho en una estación para eliminarla.");
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Eliminar Estación");
+    msgBox.setText("Haga clic derecho en una estación para eliminarla.");
+    msgBox.setIcon(QMessageBox::NoIcon);
+    msgBox.exec();
 }
 
 void MainWindow::on_actionExportTraversals_triggered() {
