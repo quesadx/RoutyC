@@ -26,6 +26,7 @@ public:
     bool hasRoute(int source, int destination);
     int getRouteTime(int source, int destination);
     vector<int> getConnectedStations(int stationId);
+    vector<int> getAllConnectedStations(int stationId);
     vector<int> getAllStations();
     void clear();
     bool canReach(int source, int destination);

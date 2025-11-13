@@ -45,7 +45,7 @@ void NetworkManager::deleteStation(int stationId) {
         return;
     }
     
-    std::vector<int> neighbors = graph->getConnectedStations(stationId);
+    std::vector<int> neighbors = graph->getAllConnectedStations(stationId);
     for (int neighborId : neighbors) {
         deleteRoute(stationId, neighborId);
     }
@@ -73,6 +73,7 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
     }
     
     std::pair<int, int> key = makeRoutePair(id1, id2);
+    bool wasBlocked = graph->isRouteBlocked(id1, id2);
     
     if (routes.find(key) != routes.end()) {
         scene->removeItem(routes[key]);
@@ -98,8 +99,11 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
     ClickableRoute* route = new ClickableRoute(id1, id2, QLineF(center1, center2), mainWindow);
     scene->addItem(route);
     route->setZValue(-1);
-    
     routes[key] = route;
+    
+    if (wasBlocked) {
+        route->setBlocked(true);
+    }
     
     QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(travelTime));
     weightLabel->setDefaultTextColor(QColor(156, 163, 175));
@@ -141,7 +145,7 @@ void NetworkManager::updateRoutePosition(int stationId, const QPointF& center) {
         return;
     }
     
-    std::vector<int> neighbors = graph->getConnectedStations(stationId);
+    std::vector<int> neighbors = graph->getAllConnectedStations(stationId);
     
     for (int neighborId : neighbors) {
         if (stations.find(neighborId) == stations.end()) {
@@ -179,6 +183,16 @@ void NetworkManager::updateRouteVisualState(int id1, int id2) {
     }
 }
 
+void NetworkManager::updateAllRouteVisualStates() {
+    for (auto& pair : routes) {
+        ClickableRoute* route = pair.second;
+        int id1 = route->getSourceId();
+        int id2 = route->getDestId();
+        bool isBlocked = graph->isRouteBlocked(id1, id2);
+        route->setBlocked(isBlocked);
+    }
+}
+
 void NetworkManager::clearAll() {
     scene->clear();
     stations.clear();
@@ -210,7 +224,7 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
     
     std::vector<int> allStationIds = sourceGraph->getAllStations();
     for (int stationId : allStationIds) {
-        std::vector<int> neighbors = sourceGraph->getConnectedStations(stationId);
+        std::vector<int> neighbors = sourceGraph->getAllConnectedStations(stationId);
         for (int neighbor : neighbors) {
             if (stationId < neighbor) {
                 std::pair<int, int> key = makeRoutePair(stationId, neighbor);
@@ -299,7 +313,11 @@ void NetworkManager::clearHighlights() {
     }
     
     for (auto& pair : routes) {
-        pair.second->setPen(QPen(QColor(107, 114, 128), 2));
+        ClickableRoute* route = pair.second;
+        int id1 = route->getSourceId();
+        int id2 = route->getDestId();
+        bool isBlocked = graph->isRouteBlocked(id1, id2);
+        route->setBlocked(isBlocked);
     }
 }
 

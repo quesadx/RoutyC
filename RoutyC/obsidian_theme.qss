@@ -358,12 +358,10 @@ QDialog QPushButton {
 QMessageBox {
     background-color: #1e1e1e;
     color: #dcddde;
-    max-width: 500px;
 }
 
 QMessageBox QLabel {
     color: #dcddde;
-    max-width: 400px;
 }
 
 QMessageBox QPushButton {

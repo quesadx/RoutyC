@@ -28,6 +28,7 @@ public:
     void deleteRoute(int id1, int id2);
     void updateRoutePosition(int stationId, const QPointF& center);
     void updateRouteVisualState(int id1, int id2);
+    void updateAllRouteVisualStates();
     void clearAll();
     void reconstructFromData(StationTree* tree, TransportGraph* graph);
     

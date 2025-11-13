@@ -23,13 +23,19 @@ bool FileManager::saveToFile(const string& filename, StationTree* tree, Transpor
     file << "ROUTES\n";
     vector<int> allStations = graph->getAllStations();
     for (int stationId : allStations) {
-        vector<int> neighbors = graph->getConnectedStations(stationId);
+        vector<int> neighbors = graph->getAllConnectedStations(stationId);
         for (int neighbor : neighbors) {
             if (stationId < neighbor) {
                 int weight = graph->getRouteTime(stationId, neighbor);
                 file << stationId << "|" << neighbor << "|" << weight << "\n";
             }
         }
+    }
+    
+    file << "CLOSURES\n";
+    vector<pair<int, int>> closures = graph->getBlockedRoutes();
+    for (const auto& closure : closures) {
+        file << closure.first << "|" << closure.second << "\n";
     }
     
     file.close();
@@ -58,6 +64,9 @@ bool FileManager::loadFromFile(const string& filename, StationTree* tree, Transp
             continue;
         } else if (line == "ROUTES") {
             section = "ROUTES";
+            continue;
+        } else if (line == "CLOSURES") {
+            section = "CLOSURES";
             continue;
         }
         
@@ -91,6 +100,17 @@ bool FileManager::loadFromFile(const string& filename, StationTree* tree, Transp
             int weight = stoi(weightStr);
             
             graph->addRoute(id1, id2, weight);
+        } else if (section == "CLOSURES") {
+            istringstream iss(line);
+            string id1Str, id2Str;
+            
+            getline(iss, id1Str, '|');
+            getline(iss, id2Str, '|');
+            
+            int id1 = stoi(id1Str);
+            int id2 = stoi(id2Str);
+            
+            graph->blockRoute(id1, id2);
         }
     }
     

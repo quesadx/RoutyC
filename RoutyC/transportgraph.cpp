@@ -112,6 +112,16 @@ vector<int> TransportGraph::getConnectedStations(int stationId) {
     return neighbors;
 }
 
+vector<int> TransportGraph::getAllConnectedStations(int stationId) {
+    vector<int> neighbors;
+    if (connections.find(stationId) != connections.end()) {
+        for (Edge* edge : connections[stationId]) {
+            neighbors.push_back(edge->destination);
+        }
+    }
+    return neighbors;
+}
+
 vector<int> TransportGraph::getAllStations() {
     vector<int> stations;
     for (const auto& pair : connections) {

@@ -60,6 +60,7 @@ private:
     int currentAnimationStep;
     PathResult currentResult;
     bool isAnimating;
+    QString currentFilePath;
     
     void setupScene();
     void setupAlgorithms();

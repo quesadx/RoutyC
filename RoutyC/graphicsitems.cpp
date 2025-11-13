@@ -132,6 +132,15 @@ void ClickableRoute::updateVisualState() {
     }
 }
 
+QPainterPath ClickableRoute::shape() const {
+    QPainterPath path;
+    QPainterPathStroker stroker;
+    stroker.setWidth(15);
+    path.moveTo(line().p1());
+    path.lineTo(line().p2());
+    return stroker.createStroke(path);
+}
+
 void ClickableRoute::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
     QMenu menu;
     QAction* toggleClosureAction = menu.addAction(blocked ? "Desbloquear Ruta" : "Bloquear Ruta (Cierre)");

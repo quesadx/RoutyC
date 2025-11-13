@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), 
       scene(nullptr), networkManager(nullptr),
       nextStationId(101), selectedStationId(-1),
-      currentAnimationStep(0), isAnimating(false) {
+      currentAnimationStep(0), isAnimating(false), currentFilePath("") {
     ui->setupUi(this);
     statusBar()->hide();
     
@@ -27,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
     setupScene();
     setupAlgorithms();
     updateGeneralInfo();
-    autoLoadData();
 }
 
 MainWindow::~MainWindow() {
@@ -116,6 +115,15 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 }
 
 void MainWindow::createStation(const QString& name, double x, double y) {
+    vector<StationNode*> stations = networkManager->getAllStations();
+    for (StationNode* station : stations) {
+        if (QString::fromStdString(station->name) == name) {
+            QMessageBox::warning(this, "Error", 
+                               "Ya existe una estación con ese nombre.");
+            return;
+        }
+    }
+    
     int id = nextStationId++;
     networkManager->createStation(id, name, x, y);
     updateComboBoxes();
@@ -155,7 +163,7 @@ void MainWindow::updateGeneralInfo() {
     int totalRoutes = 0;
     vector<int> allStations = graph->getAllStations();
     for (int stationId : allStations) {
-        totalRoutes += graph->getConnectedStations(stationId).size();
+        totalRoutes += graph->getAllConnectedStations(stationId).size();
     }
     totalRoutes /= 2;
     
@@ -191,21 +199,25 @@ void MainWindow::handleStationClick(DraggableStation* station) {
             firstStation->setBrush(QBrush(QColor(124, 58, 237)));
         }
         
+        if (networkManager->getGraph()->hasRoute(firstId, secondId)) {
+            QMessageBox::information(this, "Ruta Existente", 
+                                   "Ya existe una ruta entre estas estaciones.");
+            selectedStationId = -1;
+            return;
+        }
+        
         bool ok;
         int travelTime = QInputDialog::getInt(this, "Crear Ruta", 
                                               "Ingrese el tiempo de viaje (minutos):", 
                                               10, 1, 1000, 1, &ok);
         if (ok) {
-            bool wasConnectedBefore = networkManager->getGraph()->isFullyConnected();
             networkManager->createRoute(firstId, secondId, travelTime);
-            bool canReachNow = networkManager->getGraph()->isFullyConnected();
-            
-            if (!wasConnectedBefore && canReachNow) {
-                QMessageBox::information(this, "Grafo Conectado", 
-                                       "¡Excelente! El grafo ahora está completamente conectado. Todas las estaciones son alcanzables entre sí.");
-            }
             
             updateGeneralInfo();
+            
+            if (!currentFilePath.isEmpty()) {
+                autoSaveData();
+            }
         }
         
         selectedStationId = -1;
@@ -283,7 +295,10 @@ void MainWindow::handleRouteToggleClosure(int sourceId, int destId) {
     }
     
     networkManager->updateRouteVisualState(sourceId, destId);
-    autoSaveData();
+    
+    if (!currentFilePath.isEmpty()) {
+        autoSaveData();
+    }
 }
 
 void MainWindow::updateRoutePositionsDuringDrag(int stationId, const QPointF& center) {
@@ -471,14 +486,19 @@ void MainWindow::on_cbAlgorithm_currentIndexChanged(int index) {
 
 void MainWindow::on_actionSave_triggered() {
     QString filename = QFileDialog::getSaveFileName(this, "Guardar Red", "", 
-                                                    "Archivos RoutyC (*.rty);;Todos los Archivos (*)");
+                                                    "Archivos de texto (*.txt)");
     
     if (filename.isEmpty()) {
         return;
     }
     
+    if (!filename.endsWith(".txt", Qt::CaseInsensitive)) {
+        filename += ".txt";
+    }
+    
     if (FileManager::saveToFile(filename.toStdString(), networkManager->getTree(), 
                                 networkManager->getGraph())) {
+        currentFilePath = filename;
         QMessageBox::information(this, "Éxito", "Red guardada exitosamente");
     } else {
         QMessageBox::critical(this, "Error", "No se pudo guardar la red");
@@ -487,7 +507,7 @@ void MainWindow::on_actionSave_triggered() {
 
 void MainWindow::on_actionLoad_triggered() {
     QString filename = QFileDialog::getOpenFileName(this, "Cargar Red", "", 
-                                                    "Archivos RoutyC (*.rty);;Todos los Archivos (*)");
+                                                    "Archivos de texto (*.txt)");
     
     if (filename.isEmpty()) {
         return;
@@ -498,7 +518,10 @@ void MainWindow::on_actionLoad_triggered() {
     
     if (FileManager::loadFromFile(filename.toStdString(), networkManager->getTree(), 
                                   networkManager->getGraph())) {
+        currentFilePath = filename;
         networkManager->reconstructFromData(networkManager->getTree(), networkManager->getGraph());
+        networkManager->updateAllRouteVisualStates();
+        
         updateComboBoxes();
         
         vector<StationNode*> stations = networkManager->getAllStations();
@@ -555,17 +578,20 @@ void MainWindow::autoLoadData() {
     
     if (QFile::exists("cierres.txt")) {
         FileManager::loadClosures("cierres.txt", networkManager->getGraph());
+        networkManager->updateAllRouteVisualStates();
     }
 }
 
 void MainWindow::autoSaveData() {
-    FileManager::saveToFile("estaciones.txt", networkManager->getTree(), 
+    if (currentFilePath.isEmpty()) {
+        return;
+    }
+    
+    FileManager::saveToFile(currentFilePath.toStdString(), networkManager->getTree(), 
                            networkManager->getGraph());
-    FileManager::saveClosures("cierres.txt", networkManager->getGraph());
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-    autoSaveData();
     QMainWindow::closeEvent(event);
 }
 

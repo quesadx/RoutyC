@@ -49,6 +49,7 @@ public:
     void setBlocked(bool blocked);
     bool isBlocked() const;
     void updateVisualState();
+    QPainterPath shape() const override;
     
 protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
