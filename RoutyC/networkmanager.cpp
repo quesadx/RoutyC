@@ -253,14 +253,14 @@ void NetworkManager::highlightPath(const std::vector<int>& path) {
     
     for (int stationId : path) {
         if (stationItems.find(stationId) != stationItems.end()) {
-            stationItems[stationId]->setBrush(QBrush(QColor(168, 85, 247)));
+            stationItems[stationId]->setBrush(QBrush(QColor(250, 204, 21)));
         }
     }
     
     for (size_t i = 0; i < path.size() - 1; i++) {
         std::pair<int, int> key = normalizeEdgePair(path[i], path[i + 1]);
         if (routeItems.find(key) != routeItems.end()) {
-            routeItems[key]->setPen(QPen(QColor(168, 85, 247), 4));
+            routeItems[key]->setPen(QPen(QColor(250, 204, 21), 5));
         }
     }
 }

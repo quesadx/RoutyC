@@ -609,7 +609,7 @@ void MainWindow::visualizeStep(const VisualizationStep& step) {
     for (int nodeId : step.visitedNodes) {
         auto it = networkManager->getStationItems().find(nodeId);
         if (it != networkManager->getStationItems().end()) {
-            it->second->setBrush(QBrush(QColor(139, 92, 246)));
+            it->second->setBrush(QBrush(QColor(34, 211, 238)));
         }
     }
     
@@ -620,7 +620,7 @@ void MainWindow::visualizeStep(const VisualizationStep& step) {
         
         auto it = networkManager->getRouteItems().find(key);
         if (it != networkManager->getRouteItems().end()) {
-            it->second->setPen(QPen(QColor(139, 92, 246), 3));
+            it->second->setPen(QPen(QColor(34, 211, 238), 4));
         }
     }
     
@@ -633,8 +633,6 @@ void MainWindow::finishAnimation() {
     
     networkManager->highlightPath(currentResult.path);
     
-    ui->pteOutput->appendPlainText("");
-    ui->pteOutput->appendPlainText("¡Animación completada!");
     ui->pteOutput->appendPlainText("");
     
     QString pathStr = "Ruta final: ";
