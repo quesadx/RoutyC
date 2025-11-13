@@ -370,9 +370,9 @@ void MainWindow::exportTraversals() {
     
     QTextStream out(&file);
     
-    out << "~ RECORRIDOS DEL ÁRBOL DE ESTACIONES ~\n\n";
+    out << "~ Recorridos del Árbol de Estaciones ~\n\n";
     
-    out << "Recorrido In-Order (BST):\n";
+    out << "Recorrido In-Order:\n";
     vector<StationNode*> inOrder = networkManager->getAllStations();
     for (StationNode* node : inOrder) {
         out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
