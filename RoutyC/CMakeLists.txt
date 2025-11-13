@@ -16,23 +16,23 @@ find_package(Qt6 COMPONENTS
         REQUIRED)
 
 add_executable(RoutyC main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-        stationtree.cpp
-        stationtree.h
-        transportgraph.cpp
-        transportgraph.h
-        pathalgorithm.cpp
-        pathalgorithm.h
-        filemanager.cpp
-        filemanager.h
-        graphicsitems.cpp
-        graphicsitems.h
-        networkmanager.cpp
-        networkmanager.h
-        customgraphicsview.cpp
-        customgraphicsview.h
+        MainWindow.cpp
+        MainWIndow.h
+        MainWindow.ui
+        StationTree.cpp
+        StationTree.h
+        TransportGraph.cpp
+        TransportGraph.h
+        PathAlgorithm.cpp
+        PathAlgorithm.h
+        FileManager.cpp
+        FIleManager.h
+        GraphicsItems.cpp
+        GraphicsItems.h
+        NetworkManager.cpp
+        NetworkManager.h
+        CustomGraphicsView.cpp
+        CustomGraphicsView.h
         resources.qrc)
 target_link_libraries(RoutyC
         Qt::Core

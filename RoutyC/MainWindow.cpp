@@ -1,7 +1,7 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "graphicsitems.h"
-#include "filemanager.h"
+#include "MainWIndow.h"
+#include "ui_MainWindow.h"
+#include "GraphicsItems.h"
+#include "FIleManager.h"
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QFileDialog>

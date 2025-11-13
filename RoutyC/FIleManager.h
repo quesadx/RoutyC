@@ -2,8 +2,8 @@
 #define FILEMANAGER_H
 
 #include <string>
-#include "stationtree.h"
-#include "transportgraph.h"
+#include "StationTree.h"
+#include "TransportGraph.h"
 
 using namespace std;
 

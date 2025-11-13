@@ -5,8 +5,8 @@
 #include <QGraphicsScene>
 #include <QTimer>
 #include <vector>
-#include "networkmanager.h"
-#include "pathalgorithm.h"
+#include "NetworkManager.h"
+#include "PathAlgorithm.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

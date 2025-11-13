@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
-#include "mainwindow.h"
+#include "MainWIndow.h"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv); // Para inicializar la aplicación Qt

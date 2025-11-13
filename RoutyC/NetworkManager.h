@@ -6,8 +6,8 @@
 #include <vector>
 #include <QString>
 #include <QPointF>
-#include "stationtree.h"
-#include "transportgraph.h"
+#include "StationTree.h"
+#include "TransportGraph.h"
 
 using namespace std;
 

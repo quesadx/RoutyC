@@ -311,7 +311,7 @@
   <customwidget>
    <class>CustomGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>customgraphicsview.h</header>
+   <header>CustomGraphicsView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

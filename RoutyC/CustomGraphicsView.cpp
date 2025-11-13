@@ -1,4 +1,4 @@
-#include "customgraphicsview.h"
+#include "CustomGraphicsView.h"
 #include <QPainter>
 #include <QRadialGradient>
 #include <cmath>

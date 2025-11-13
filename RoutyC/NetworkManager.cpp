@@ -1,6 +1,6 @@
-#include "networkmanager.h"
-#include "graphicsitems.h"
-#include "mainwindow.h"
+#include "NetworkManager.h"
+#include "GraphicsItems.h"
+#include "MainWIndow.h"
 #include <QGraphicsScene>
 #include <QBrush>
 #include <QPen>

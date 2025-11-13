@@ -1,5 +1,5 @@
-#include "graphicsitems.h"
-#include "mainwindow.h"
+#include "GraphicsItems.h"
+#include "MainWIndow.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
 #include <QBrush>
