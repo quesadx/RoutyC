@@ -46,6 +46,7 @@ private slots:
     void on_actionModifyRoute_triggered();
     void on_actionCreateStation_triggered();
     void on_actionDeleteStation_triggered();
+    void on_actionSearchStation_triggered();
     void on_actionExportTraversals_triggered();
     void on_actionGenerateReport_triggered();
     void animateNextStep();

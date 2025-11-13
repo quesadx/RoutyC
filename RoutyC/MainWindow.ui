@@ -225,6 +225,7 @@
     </property>
     <addaction name="actionSave"/>
     <addaction name="actionLoad"/>
+    <addaction name="separator"/>
     <addaction name="actionClearCurrentDisplay"/>
    </widget>
    <widget class="QMenu" name="menuReports">
@@ -249,6 +250,8 @@
     </property>
     <addaction name="actionCreateStation"/>
     <addaction name="actionDeleteStation"/>
+    <addaction name="separator"/>
+    <addaction name="actionSearchStation"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuReports"/>
@@ -304,6 +307,11 @@
   <action name="actionModifyRoute">
    <property name="text">
     <string>Modificar ruta</string>
+   </property>
+  </action>
+  <action name="actionSearchStation">
+   <property name="text">
+    <string>Buscar estación</string>
    </property>
   </action>
  </widget>

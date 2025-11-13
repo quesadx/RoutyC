@@ -430,7 +430,7 @@ void MainWindow::generateReport() {
     
     QTextStream out(&file);
     
-    out << "    REPORTE DE LA RED DE TRANSPORTE\n";
+    out << "REPORTE DE LA RED DE TRANSPORTE DE LA MANCHA\n";
     
     vector<StationNode*> stations = networkManager->getAllStations();
     out << "Total de Estaciones: " << stations.size() << "\n\n";
@@ -444,7 +444,7 @@ void MainWindow::generateReport() {
     totalRoutes /= 2;
     out << "Total de Rutas: " << totalRoutes << "\n\n";
     
-    out << "--- ESTACIONES ---\n";
+    out << "~ ESTACIONES ~\n";
     for (StationNode* node : stations) {
         out << "ID: " << node->id << "\n";
         out << "Nombre: " << QString::fromStdString(node->name) << "\n";
@@ -672,6 +672,49 @@ void MainWindow::on_actionDeleteStation_triggered() {
     msgBox.setText("Haga clic derecho en una estación para eliminarla.");
     msgBox.setIcon(QMessageBox::NoIcon);
     msgBox.exec();
+}
+
+void MainWindow::on_actionSearchStation_triggered() {
+    bool ok;
+    QString searchText = QInputDialog::getText(this, "Buscar Estación",
+                                              "Ingrese el nombre de la estación a buscar:",
+                                              QLineEdit::Normal, "", &ok);
+    
+    if (ok && !searchText.isEmpty()) {
+        vector<StationNode*> stations = networkManager->getAllStations();
+        StationNode* found = nullptr;
+        
+        for (StationNode* station : stations) {
+            if (QString::fromStdString(station->name).contains(searchText, Qt::CaseInsensitive)) {
+                found = station;
+                break;
+            }
+        }
+        
+        if (found) {
+            DraggableStation* stationItem = networkManager->getStation(found->id);
+            if (stationItem) {
+                networkManager->clearHighlights();
+                stationItem->setBrush(QBrush(QColor(250, 204, 21)));
+                
+                QRectF bounds = stationItem->rect();
+                QPointF center = bounds.center() + stationItem->pos();
+                ui->gvArea->centerOn(center);
+                
+                QMessageBox msgBox(this);
+                msgBox.setWindowTitle("Estación Encontrada");
+                msgBox.setText(QString("Se encontró la estación: %1").arg(QString::fromStdString(found->name)));
+                msgBox.setIcon(QMessageBox::NoIcon);
+                msgBox.exec();
+            }
+        } else {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("No Encontrada");
+            msgBox.setText(QString("No se encontró ninguna estación con el nombre: %1").arg(searchText));
+            msgBox.setIcon(QMessageBox::NoIcon);
+            msgBox.exec();
+        }
+    }
 }
 
 void MainWindow::on_actionExportTraversals_triggered() {
