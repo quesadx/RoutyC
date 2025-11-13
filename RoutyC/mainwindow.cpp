@@ -11,6 +11,8 @@
 #include <QPainter>
 #include <QPixmap>
 
+using namespace std;
+
 MainWindow::MainWindow(QWidget *parent) 
     : QMainWindow(parent), ui(new Ui::MainWindow), 
       scene(nullptr), networkManager(nullptr),
@@ -45,7 +47,7 @@ void MainWindow::setupScene() {
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, 800, 600);
     
-    // Create dot pattern background
+    // Para el fondo del QGraphicsView con puntitos
     QPixmap dotPattern(20, 20);
     dotPattern.fill(QColor(26, 26, 26));
     QPainter painter(&dotPattern);
@@ -127,7 +129,7 @@ void MainWindow::updateComboBoxes() {
     ui->cbOrigin->clear();
     ui->cbDestination->clear();
     
-    std::vector<StationNode*> stations = networkManager->getAllStations();
+    vector<StationNode*> stations = networkManager->getAllStations();
     for (StationNode* node : stations) {
         QString stationName = QString::fromStdString(node->name);
         ui->cbOrigin->addItem(stationName, node->id);
@@ -146,14 +148,14 @@ void MainWindow::updateComboBoxes() {
 }
 
 void MainWindow::updateGeneralInfo() {
-    std::vector<StationNode*> stations = networkManager->getAllStations();
+    vector<StationNode*> stations = networkManager->getAllStations();
     int totalStations = stations.size();
     
     TransportGraph* graph = networkManager->getGraph();
     int totalRoutes = 0;
-    std::vector<int> allStations = graph->getAllStations();
+    vector<int> allStations = graph->getAllStations();
     for (int stationId : allStations) {
-        totalRoutes += graph->getNeighbors(stationId).size();
+        totalRoutes += graph->getConnectedStations(stationId).size();
     }
     totalRoutes /= 2;
     
@@ -194,11 +196,11 @@ void MainWindow::handleStationClick(DraggableStation* station) {
                                               "Ingrese el tiempo de viaje (minutos):", 
                                               10, 1, 1000, 1, &ok);
         if (ok) {
-            bool wasConnectedBefore = networkManager->getGraph()->isGraphFullyConnected();
+            bool wasConnectedBefore = networkManager->getGraph()->isFullyConnected();
             networkManager->createRoute(firstId, secondId, travelTime);
-            bool isConnectedNow = networkManager->getGraph()->isGraphFullyConnected();
+            bool canReachNow = networkManager->getGraph()->isFullyConnected();
             
-            if (!wasConnectedBefore && isConnectedNow) {
+            if (!wasConnectedBefore && canReachNow) {
                 QMessageBox::information(this, "Grafo Conectado", 
                                        "¡Excelente! El grafo ahora está completamente conectado. Todas las estaciones son alcanzables entre sí.");
             }
@@ -226,7 +228,7 @@ void MainWindow::handleStationDelete(int stationId) {
 }
 
 void MainWindow::handleStationRename(int stationId) {
-    StationNode* node = networkManager->getTree()->findStation(stationId);
+    StationNode* node = networkManager->getTree()->searchStation(stationId);
     if (!node) {
         return;
     }
@@ -238,7 +240,7 @@ void MainWindow::handleStationRename(int stationId) {
                                            QLineEdit::Normal, currentName, &ok);
     
     if (ok && !newName.isEmpty() && newName != currentName) {
-        std::vector<StationNode*> stations = networkManager->getAllStations();
+        vector<StationNode*> stations = networkManager->getAllStations();
         for (StationNode* station : stations) {
             if (station->id != stationId && 
                 QString::fromStdString(station->name) == newName) {
@@ -289,21 +291,21 @@ void MainWindow::exportTraversals() {
     out << "=== RECORRIDOS DEL ÁRBOL DE ESTACIONES ===\n\n";
     
     out << "Recorrido In-Order (BST):\n";
-    std::vector<StationNode*> inOrder = networkManager->getAllStations();
+    vector<StationNode*> inOrder = networkManager->getAllStations();
     for (StationNode* node : inOrder) {
         out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
     }
     out << "\n";
     
     out << "Recorrido Pre-Order:\n";
-    std::vector<StationNode*> preOrder = networkManager->getTree()->getPreOrderTraversal();
+    vector<StationNode*> preOrder = networkManager->getTree()->getPreOrderTraversal();
     for (StationNode* node : preOrder) {
         out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
     }
     out << "\n";
     
     out << "Recorrido Post-Order:\n";
-    std::vector<StationNode*> postOrder = networkManager->getTree()->getPostOrderTraversal();
+    vector<StationNode*> postOrder = networkManager->getTree()->getPostOrderTraversal();
     for (StationNode* node : postOrder) {
         out << "  ID: " << node->id << " - " << QString::fromStdString(node->name) << "\n";
     }
@@ -312,17 +314,17 @@ void MainWindow::exportTraversals() {
     out << "=== TRANSPORT GRAPH ===\n\n";
     
     TransportGraph* graph = networkManager->getGraph();
-    std::vector<int> allStations = graph->getAllStations();
+    vector<int> allStations = graph->getAllStations();
     
     for (int stationId : allStations) {
-        StationNode* node = networkManager->getTree()->findStation(stationId);
+        StationNode* node = networkManager->getTree()->searchStation(stationId);
         if (node) {
             out << "Station " << node->id << " (" << QString::fromStdString(node->name) << "):\n";
-            std::vector<int> neighbors = graph->getNeighbors(stationId);
+            vector<int> neighbors = graph->getConnectedStations(stationId);
             for (int neighbor : neighbors) {
-                StationNode* neighborNode = networkManager->getTree()->findStation(neighbor);
+                StationNode* neighborNode = networkManager->getTree()->searchStation(neighbor);
                 if (neighborNode) {
-                    int weight = graph->getEdgeWeight(stationId, neighbor);
+                    int weight = graph->getRouteTime(stationId, neighbor);
                     out << "  -> " << neighborNode->id << " (" 
                         << QString::fromStdString(neighborNode->name) << ") - " << weight << " min\n";
                 }
@@ -350,14 +352,14 @@ void MainWindow::generateReport() {
     out << "    TRANSPORT NETWORK REPORT\n";
     out << "======================================\n\n";
     
-    std::vector<StationNode*> stations = networkManager->getAllStations();
+    vector<StationNode*> stations = networkManager->getAllStations();
     out << "Total Stations: " << stations.size() << "\n\n";
     
     TransportGraph* graph = networkManager->getGraph();
     int totalRoutes = 0;
-    std::vector<int> allStations = graph->getAllStations();
+    vector<int> allStations = graph->getAllStations();
     for (int stationId : allStations) {
-        totalRoutes += graph->getNeighbors(stationId).size();
+        totalRoutes += graph->getConnectedStations(stationId).size();
     }
     totalRoutes /= 2;
     out << "Total Routes: " << totalRoutes << "\n\n";
@@ -368,13 +370,13 @@ void MainWindow::generateReport() {
         out << "Name: " << QString::fromStdString(node->name) << "\n";
         out << "Position: (" << node->x << ", " << node->y << ")\n";
         
-        std::vector<int> neighbors = graph->getNeighbors(node->id);
+        vector<int> neighbors = graph->getConnectedStations(node->id);
         out << "Connections: " << neighbors.size() << "\n";
         
         for (int neighbor : neighbors) {
-            StationNode* neighborNode = networkManager->getTree()->findStation(neighbor);
+            StationNode* neighborNode = networkManager->getTree()->searchStation(neighbor);
             if (neighborNode) {
-                int weight = graph->getEdgeWeight(node->id, neighbor);
+                int weight = graph->getRouteTime(node->id, neighbor);
                 out << "  -> " << QString::fromStdString(neighborNode->name) 
                     << " (" << weight << " min)\n";
             }
@@ -384,7 +386,7 @@ void MainWindow::generateReport() {
     
     out << "--- CONNECTIVITY ANALYSIS ---\n";
     for (StationNode* node : stations) {
-        int connections = graph->getNeighbors(node->id).size();
+        int connections = graph->getConnectedStations(node->id).size();
         out << QString::fromStdString(node->name) << ": " << connections << " connection";
         if (connections != 1) out << "s";
         out << "\n";
@@ -412,7 +414,7 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
         return;
     }
     
-    if (!networkManager->getGraph()->isConnected(originId, destId)) {
+    if (!networkManager->getGraph()->canReach(originId, destId)) {
         QMessageBox::warning(this, "Grafo Desconectado", 
                            "No existe conexión entre el origen y el destino. Por favor agregue rutas para conectar estas estaciones.");
         return;
@@ -441,7 +443,7 @@ void MainWindow::on_pbCalculateWithAlgorithm_clicked() {
         ui->pteOutput->appendPlainText("");
         ui->pteOutput->appendPlainText("Pasos de ejecución:");
         
-        for (const std::string& step : result.steps) {
+        for (const string& step : result.steps) {
             ui->pteOutput->appendPlainText(QString::fromStdString(step));
         }
     }
@@ -488,7 +490,7 @@ void MainWindow::on_actionLoad_triggered() {
         networkManager->reconstructFromData(networkManager->getTree(), networkManager->getGraph());
         updateComboBoxes();
         
-        std::vector<StationNode*> stations = networkManager->getAllStations();
+        vector<StationNode*> stations = networkManager->getAllStations();
         if (!stations.empty()) {
             int maxId = 0;
             for (StationNode* node : stations) {
@@ -603,9 +605,9 @@ void MainWindow::visualizeStep(const VisualizationStep& step) {
     }
     
     for (const auto& edge : step.visitedEdges) {
-        std::pair<int, int> key = edge.first < edge.second ? 
-            std::make_pair(edge.first, edge.second) : 
-            std::make_pair(edge.second, edge.first);
+        pair<int, int> key = edge.first < edge.second ? 
+            make_pair(edge.first, edge.second) : 
+            make_pair(edge.second, edge.first);
         
         auto it = networkManager->getRouteItems().find(key);
         if (it != networkManager->getRouteItems().end()) {
@@ -627,7 +629,7 @@ void MainWindow::finishAnimation() {
     
     QString pathStr = "";
     for (size_t i = 0; i < currentResult.path.size(); i++) {
-        StationNode* node = networkManager->getTree()->findStation(currentResult.path[i]);
+        StationNode* node = networkManager->getTree()->searchStation(currentResult.path[i]);
         if (node) {
             pathStr += QString::fromStdString(node->name);
             if (i < currentResult.path.size() - 1) {

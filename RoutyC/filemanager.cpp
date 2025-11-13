@@ -2,13 +2,15 @@
 #include <fstream>
 #include <sstream>
 
-bool FileManager::saveToFile(const std::string& filename, StationTree* tree, TransportGraph* graph) {
-    std::ofstream file(filename);
+using namespace std;
+
+bool FileManager::saveToFile(const string& filename, StationTree* tree, TransportGraph* graph) {
+    ofstream file(filename);
     if (!file.is_open()) {
         return false;
     }
     
-    std::vector<StationNode*> stations = tree->getAllStations();
+    vector<StationNode*> stations = tree->getAllStations();
     
     file << "STATIONS\n";
     for (StationNode* node : stations) {
@@ -19,12 +21,12 @@ bool FileManager::saveToFile(const std::string& filename, StationTree* tree, Tra
     }
     
     file << "ROUTES\n";
-    std::vector<int> allStations = graph->getAllStations();
+    vector<int> allStations = graph->getAllStations();
     for (int stationId : allStations) {
-        std::vector<int> neighbors = graph->getNeighbors(stationId);
+        vector<int> neighbors = graph->getConnectedStations(stationId);
         for (int neighbor : neighbors) {
             if (stationId < neighbor) {
-                int weight = graph->getEdgeWeight(stationId, neighbor);
+                int weight = graph->getRouteTime(stationId, neighbor);
                 file << stationId << "|" << neighbor << "|" << weight << "\n";
             }
         }
@@ -34,8 +36,8 @@ bool FileManager::saveToFile(const std::string& filename, StationTree* tree, Tra
     return true;
 }
 
-bool FileManager::loadFromFile(const std::string& filename, StationTree* tree, TransportGraph* graph) {
-    std::ifstream file(filename);
+bool FileManager::loadFromFile(const string& filename, StationTree* tree, TransportGraph* graph) {
+    ifstream file(filename);
     if (!file.is_open()) {
         return false;
     }
@@ -43,10 +45,10 @@ bool FileManager::loadFromFile(const std::string& filename, StationTree* tree, T
     tree->clear();
     graph->clear();
     
-    std::string line;
-    std::string section;
+    string line;
+    string section;
     
-    while (std::getline(file, line)) {
+    while (getline(file, line)) {
         if (line.empty()) {
             continue;
         }
@@ -60,35 +62,35 @@ bool FileManager::loadFromFile(const std::string& filename, StationTree* tree, T
         }
         
         if (section == "STATIONS") {
-            std::istringstream iss(line);
-            std::string idStr, name, xStr, yStr;
+            istringstream iss(line);
+            string idStr, name, xStr, yStr;
             
-            std::getline(iss, idStr, '|');
-            std::getline(iss, name, '|');
-            std::getline(iss, xStr, '|');
-            std::getline(iss, yStr, '|');
+            getline(iss, idStr, '|');
+            getline(iss, name, '|');
+            getline(iss, xStr, '|');
+            getline(iss, yStr, '|');
             
-            int id = std::stoi(idStr);
-            double x = std::stod(xStr);
-            double y = std::stod(yStr);
-            std::string unescapedName = unescapeString(name);
+            int id = stoi(idStr);
+            double x = stod(xStr);
+            double y = stod(yStr);
+            string unescapedName = unescapeString(name);
             
-            tree->insertStation(id, unescapedName, x, y);
+            tree->addStation(id, unescapedName, x, y);
             graph->addStation(id);
             
         } else if (section == "ROUTES") {
-            std::istringstream iss(line);
-            std::string id1Str, id2Str, weightStr;
+            istringstream iss(line);
+            string id1Str, id2Str, weightStr;
             
-            std::getline(iss, id1Str, '|');
-            std::getline(iss, id2Str, '|');
-            std::getline(iss, weightStr, '|');
+            getline(iss, id1Str, '|');
+            getline(iss, id2Str, '|');
+            getline(iss, weightStr, '|');
             
-            int id1 = std::stoi(id1Str);
-            int id2 = std::stoi(id2Str);
-            int weight = std::stoi(weightStr);
+            int id1 = stoi(id1Str);
+            int id2 = stoi(id2Str);
+            int weight = stoi(weightStr);
             
-            graph->addEdge(id1, id2, weight);
+            graph->addRoute(id1, id2, weight);
         }
     }
     
@@ -96,8 +98,8 @@ bool FileManager::loadFromFile(const std::string& filename, StationTree* tree, T
     return true;
 }
 
-std::string FileManager::escapeString(const std::string& str) {
-    std::string result;
+string FileManager::escapeString(const string& str) {
+    string result;
     for (char c : str) {
         if (c == '|') {
             result += "\\|";
@@ -112,8 +114,8 @@ std::string FileManager::escapeString(const std::string& str) {
     return result;
 }
 
-std::string FileManager::unescapeString(const std::string& str) {
-    std::string result;
+string FileManager::unescapeString(const string& str) {
+    string result;
     bool escaped = false;
     
     for (char c : str) {
@@ -140,43 +142,43 @@ std::string FileManager::unescapeString(const std::string& str) {
     return result;
 }
 
-bool FileManager::loadClosures(const std::string& filename, TransportGraph* graph) {
-    std::ifstream file(filename);
+bool FileManager::loadClosures(const string& filename, TransportGraph* graph) {
+    ifstream file(filename);
     if (!file.is_open()) {
         return false;
     }
     
-    graph->clearClosures();
+    graph->clearBlockedRoutes();
     
-    std::string line;
-    while (std::getline(file, line)) {
+    string line;
+    while (getline(file, line)) {
         if (line.empty()) {
             continue;
         }
         
-        std::istringstream iss(line);
-        std::string id1Str, id2Str;
+        istringstream iss(line);
+        string id1Str, id2Str;
         
-        std::getline(iss, id1Str, '|');
-        std::getline(iss, id2Str, '|');
+        getline(iss, id1Str, '|');
+        getline(iss, id2Str, '|');
         
-        int id1 = std::stoi(id1Str);
-        int id2 = std::stoi(id2Str);
+        int id1 = stoi(id1Str);
+        int id2 = stoi(id2Str);
         
-        graph->addClosure(id1, id2);
+        graph->blockRoute(id1, id2);
     }
     
     file.close();
     return true;
 }
 
-bool FileManager::saveClosures(const std::string& filename, TransportGraph* graph) {
-    std::ofstream file(filename);
+bool FileManager::saveClosures(const string& filename, TransportGraph* graph) {
+    ofstream file(filename);
     if (!file.is_open()) {
         return false;
     }
     
-    std::vector<std::pair<int, int>> closures = graph->getClosures();
+    vector<pair<int, int>> closures = graph->getBlockedRoutes();
     for (const auto& closure : closures) {
         file << closure.first << "|" << closure.second << "\n";
     }

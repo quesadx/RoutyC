@@ -7,6 +7,8 @@
 #include <QColor>
 #include <QFont>
 
+using namespace std;
+
 NetworkManager::NetworkManager(QGraphicsScene* scene, MainWindow* window)
     : scene(scene), mainWindow(window) {
     tree = new StationTree();
@@ -33,22 +35,22 @@ void NetworkManager::createStation(int id, const QString& name, double x, double
     
     station->setLabel(labelItem);
     
-    stationItems[id] = station;
-    tree->insertStation(id, name.toStdString(), x, y);
+    stations[id] = station;
+    tree->addStation(id, name.toStdString(), x, y);
     graph->addStation(id);
 }
 
 void NetworkManager::deleteStation(int stationId) {
-    if (stationItems.find(stationId) == stationItems.end()) {
+    if (stations.find(stationId) == stations.end()) {
         return;
     }
     
-    std::vector<int> neighbors = graph->getNeighbors(stationId);
+    std::vector<int> neighbors = graph->getConnectedStations(stationId);
     for (int neighborId : neighbors) {
         deleteRoute(stationId, neighborId);
     }
     
-    DraggableStation* station = stationItems[stationId];
+    DraggableStation* station = stations[stationId];
     QGraphicsTextItem* label = station->getLabel();
     
     if (label) {
@@ -59,33 +61,33 @@ void NetworkManager::deleteStation(int stationId) {
     scene->removeItem(station);
     delete station;
     
-    stationItems.erase(stationId);
+    stations.erase(stationId);
     tree->removeStation(stationId);
     graph->removeStation(stationId);
 }
 
 void NetworkManager::createRoute(int id1, int id2, int travelTime) {
-    if (stationItems.find(id1) == stationItems.end() || 
-        stationItems.find(id2) == stationItems.end()) {
+    if (stations.find(id1) == stations.end() || 
+        stations.find(id2) == stations.end()) {
         return;
     }
     
-    std::pair<int, int> key = normalizeEdgePair(id1, id2);
+    std::pair<int, int> key = makeRoutePair(id1, id2);
     
-    if (routeItems.find(key) != routeItems.end()) {
-        scene->removeItem(routeItems[key]);
-        delete routeItems[key];
-        routeItems.erase(key);
+    if (routes.find(key) != routes.end()) {
+        scene->removeItem(routes[key]);
+        delete routes[key];
+        routes.erase(key);
     }
     
-    if (routeWeightLabels.find(key) != routeWeightLabels.end()) {
-        scene->removeItem(routeWeightLabels[key]);
-        delete routeWeightLabels[key];
-        routeWeightLabels.erase(key);
+    if (routeLabels.find(key) != routeLabels.end()) {
+        scene->removeItem(routeLabels[key]);
+        delete routeLabels[key];
+        routeLabels.erase(key);
     }
     
-    DraggableStation* station1 = stationItems[id1];
-    DraggableStation* station2 = stationItems[id2];
+    DraggableStation* station1 = stations[id1];
+    DraggableStation* station2 = stations[id2];
     
     QRectF bounds1 = station1->rect();
     QRectF bounds2 = station2->rect();
@@ -97,7 +99,7 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
     scene->addItem(route);
     route->setZValue(-1);
     
-    routeItems[key] = route;
+    routes[key] = route;
     
     QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(travelTime));
     weightLabel->setDefaultTextColor(QColor(156, 163, 175));
@@ -107,56 +109,56 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
                         midPoint.y() + 5);
     scene->addItem(weightLabel);
     weightLabel->setZValue(0);
-    routeWeightLabels[key] = weightLabel;
+    routeLabels[key] = weightLabel;
     
-    graph->addEdge(id1, id2, travelTime);
+    graph->addRoute(id1, id2, travelTime);
 }
 
 void NetworkManager::deleteRoute(int id1, int id2) {
-    std::pair<int, int> key = normalizeEdgePair(id1, id2);
+    std::pair<int, int> key = makeRoutePair(id1, id2);
     
-    if (routeItems.find(key) == routeItems.end()) {
+    if (routes.find(key) == routes.end()) {
         return;
     }
     
-    ClickableRoute* route = routeItems[key];
+    ClickableRoute* route = routes[key];
     scene->removeItem(route);
     delete route;
     
-    if (routeWeightLabels.find(key) != routeWeightLabels.end()) {
-        QGraphicsTextItem* label = routeWeightLabels[key];
+    if (routeLabels.find(key) != routeLabels.end()) {
+        QGraphicsTextItem* label = routeLabels[key];
         scene->removeItem(label);
         delete label;
-        routeWeightLabels.erase(key);
+        routeLabels.erase(key);
     }
     
-    routeItems.erase(key);
-    graph->removeEdge(id1, id2);
+    routes.erase(key);
+    graph->removeRoute(id1, id2);
 }
 
 void NetworkManager::updateRoutePosition(int stationId, const QPointF& center) {
-    if (stationItems.find(stationId) == stationItems.end()) {
+    if (stations.find(stationId) == stations.end()) {
         return;
     }
     
-    std::vector<int> neighbors = graph->getNeighbors(stationId);
+    std::vector<int> neighbors = graph->getConnectedStations(stationId);
     
     for (int neighborId : neighbors) {
-        if (stationItems.find(neighborId) == stationItems.end()) {
+        if (stations.find(neighborId) == stations.end()) {
             continue;
         }
         
-        DraggableStation* neighbor = stationItems[neighborId];
+        DraggableStation* neighbor = stations[neighborId];
         QRectF neighborBounds = neighbor->rect();
         QPointF neighborCenter = neighborBounds.center() + neighbor->pos();
         
-        std::pair<int, int> key = normalizeEdgePair(stationId, neighborId);
-        if (routeItems.find(key) != routeItems.end()) {
-            ClickableRoute* route = routeItems[key];
+        std::pair<int, int> key = makeRoutePair(stationId, neighborId);
+        if (routes.find(key) != routes.end()) {
+            ClickableRoute* route = routes[key];
             route->setLine(QLineF(center, neighborCenter));
             
-            if (routeWeightLabels.find(key) != routeWeightLabels.end()) {
-                QGraphicsTextItem* label = routeWeightLabels[key];
+            if (routeLabels.find(key) != routeLabels.end()) {
+                QGraphicsTextItem* label = routeLabels[key];
                 QPointF midPoint = (center + neighborCenter) / 2.0;
                 label->setPos(midPoint.x() - label->boundingRect().width() / 2,
                              midPoint.y() + 5);
@@ -169,17 +171,17 @@ void NetworkManager::updateRoutePosition(int stationId, const QPointF& center) {
 
 void NetworkManager::clearAll() {
     scene->clear();
-    stationItems.clear();
-    routeItems.clear();
-    routeWeightLabels.clear();
+    stations.clear();
+    routes.clear();
+    routeLabels.clear();
     tree->clear();
     graph->clear();
 }
 
 void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph* sourceGraph) {
-    std::vector<StationNode*> stations = sourceTree->getAllStations();
+    std::vector<StationNode*> stationNodes = sourceTree->getAllStations();
     
-    for (StationNode* node : stations) {
+    for (StationNode* node : stationNodes) {
         DraggableStation* station = new DraggableStation(node->id, node->x, node->y, 32, mainWindow);
         scene->addItem(station);
         
@@ -193,18 +195,18 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
                           center.y() + bounds.height() / 2);
         
         station->setLabel(labelItem);
-        stationItems[node->id] = station;
+        stations[node->id] = station;
     }
     
-    std::vector<int> allStations = sourceGraph->getAllStations();
-    for (int stationId : allStations) {
-        std::vector<int> neighbors = sourceGraph->getNeighbors(stationId);
+    std::vector<int> allStationIds = sourceGraph->getAllStations();
+    for (int stationId : allStationIds) {
+        std::vector<int> neighbors = sourceGraph->getConnectedStations(stationId);
         for (int neighbor : neighbors) {
             if (stationId < neighbor) {
-                std::pair<int, int> key = normalizeEdgePair(stationId, neighbor);
-                if (routeItems.find(key) == routeItems.end()) {
-                    DraggableStation* station1 = stationItems[stationId];
-                    DraggableStation* station2 = stationItems[neighbor];
+                std::pair<int, int> key = makeRoutePair(stationId, neighbor);
+                if (routes.find(key) == routes.end()) {
+                    DraggableStation* station1 = stations[stationId];
+                    DraggableStation* station2 = stations[neighbor];
                     
                     QRectF bounds1 = station1->rect();
                     QRectF bounds2 = station2->rect();
@@ -216,9 +218,9 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
                     ClickableRoute* route = new ClickableRoute(stationId, neighbor, line, mainWindow);
                     scene->addItem(route);
                     route->setZValue(-1);
-                    routeItems[key] = route;
+                    routes[key] = route;
                     
-                    int weight = sourceGraph->getEdgeWeight(stationId, neighbor);
+                    int weight = sourceGraph->getRouteTime(stationId, neighbor);
                     QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(weight));
                     weightLabel->setDefaultTextColor(QColor(156, 163, 175));
                     weightLabel->setFont(QFont("Arial", 10, QFont::Bold));
@@ -227,7 +229,7 @@ void NetworkManager::reconstructFromData(StationTree* sourceTree, TransportGraph
                                         midPoint.y() + 5);
                     scene->addItem(weightLabel);
                     weightLabel->setZValue(0);
-                    routeWeightLabels[key] = weightLabel;
+                    routeLabels[key] = weightLabel;
                 }
             }
         }
@@ -243,8 +245,8 @@ TransportGraph* NetworkManager::getGraph() {
 }
 
 DraggableStation* NetworkManager::getStation(int id) {
-    if (stationItems.find(id) != stationItems.end()) {
-        return stationItems[id];
+    if (stations.find(id) != stations.end()) {
+        return stations[id];
     }
     return nullptr;
 }
@@ -254,43 +256,43 @@ std::vector<StationNode*> NetworkManager::getAllStations() {
 }
 
 std::map<int, DraggableStation*>& NetworkManager::getStationItems() {
-    return stationItems;
+    return stations;
 }
 
 std::map<std::pair<int, int>, ClickableRoute*>& NetworkManager::getRouteItems() {
-    return routeItems;
+    return routes;
 }
 
 void NetworkManager::highlightPath(const std::vector<int>& path) {
     clearHighlights();
     
     for (int stationId : path) {
-        if (stationItems.find(stationId) != stationItems.end()) {
-            stationItems[stationId]->setBrush(QBrush(QColor(250, 204, 21)));
+        if (stations.find(stationId) != stations.end()) {
+            stations[stationId]->setBrush(QBrush(QColor(250, 204, 21)));
         }
     }
     
     for (size_t i = 0; i < path.size() - 1; i++) {
-        std::pair<int, int> key = normalizeEdgePair(path[i], path[i + 1]);
-        if (routeItems.find(key) != routeItems.end()) {
-            routeItems[key]->setPen(QPen(QColor(250, 204, 21), 5));
+        std::pair<int, int> key = makeRoutePair(path[i], path[i + 1]);
+        if (routes.find(key) != routes.end()) {
+            routes[key]->setPen(QPen(QColor(250, 204, 21), 5));
         }
     }
 }
 
 void NetworkManager::clearHighlights() {
-    for (auto& pair : stationItems) {
+    for (auto& pair : stations) {
         pair.second->setBrush(QBrush(QColor(124, 58, 237)));
     }
     
-    for (auto& pair : routeItems) {
+    for (auto& pair : routes) {
         pair.second->setPen(QPen(QColor(107, 114, 128), 2));
     }
 }
 
-std::pair<int, int> NetworkManager::normalizeEdgePair(int a, int b) {
+std::pair<int, int> NetworkManager::makeRoutePair(int a, int b) {
     if (a < b) {
-        return std::make_pair(a, b);
+        return make_pair(a, b);
     }
-    return std::make_pair(b, a);
+    return make_pair(b, a);
 }

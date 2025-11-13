@@ -9,6 +9,8 @@
 #include "stationtree.h"
 #include "transportgraph.h"
 
+using namespace std;
+
 class DraggableStation;
 class ClickableRoute;
 class QGraphicsScene;
@@ -31,11 +33,11 @@ public:
     StationTree* getTree();
     TransportGraph* getGraph();
     DraggableStation* getStation(int id);
-    std::vector<StationNode*> getAllStations();
-    std::map<int, DraggableStation*>& getStationItems();
-    std::map<std::pair<int, int>, ClickableRoute*>& getRouteItems();
+    vector<StationNode*> getAllStations();
+    map<int, DraggableStation*>& getStationItems();
+    map<pair<int, int>, ClickableRoute*>& getRouteItems();
     
-    void highlightPath(const std::vector<int>& path);
+    void highlightPath(const vector<int>& path);
     void clearHighlights();
     
 private:
@@ -44,11 +46,11 @@ private:
     StationTree* tree;
     TransportGraph* graph;
     
-    std::map<int, DraggableStation*> stationItems;
-    std::map<std::pair<int, int>, ClickableRoute*> routeItems;
-    std::map<std::pair<int, int>, QGraphicsTextItem*> routeWeightLabels;
+    map<int, DraggableStation*> stations;
+    map<pair<int, int>, ClickableRoute*> routes;
+    map<pair<int, int>, QGraphicsTextItem*> routeLabels;
     
-    std::pair<int, int> normalizeEdgePair(int a, int b);
+    pair<int, int> makeRoutePair(int a, int b);
 };
 
 #endif

@@ -4,15 +4,17 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 struct StationNode {
     int id;
-    std::string name;
+    string name;
     double x;
     double y;
     StationNode* left;
     StationNode* right;
     
-    StationNode(int stationId, const std::string& stationName, double posX, double posY);
+    StationNode(int stationId, const string& stationName, double posX, double posY);
 };
 
 class StationTree {
@@ -20,26 +22,26 @@ public:
     StationTree();
     ~StationTree();
     
-    void insertStation(int id, const std::string& name, double x, double y);
+    void addStation(int id, const string& name, double x, double y);
     bool removeStation(int id);
-    StationNode* findStation(int id);
+    StationNode* searchStation(int id);
     void updatePosition(int id, double x, double y);
-    std::vector<StationNode*> getAllStations();
-    std::vector<StationNode*> getPreOrderTraversal();
-    std::vector<StationNode*> getPostOrderTraversal();
+    vector<StationNode*> getAllStations();
+    vector<StationNode*> getPreOrderTraversal();
+    vector<StationNode*> getPostOrderTraversal();
     void clear();
     
 private:
     StationNode* root;
     
-    StationNode* insertNode(StationNode* node, int id, const std::string& name, double x, double y);
-    StationNode* removeNode(StationNode* node, int id);
-    StationNode* findMinNode(StationNode* node);
-    StationNode* searchNode(StationNode* node, int id);
-    void collectNodes(StationNode* node, std::vector<StationNode*>& nodes);
-    void collectPreOrder(StationNode* node, std::vector<StationNode*>& nodes);
-    void collectPostOrder(StationNode* node, std::vector<StationNode*>& nodes);
-    void destroyTree(StationNode* node);
+    StationNode* addNodeToTree(StationNode* node, int id, const string& name, double x, double y);
+    StationNode* removeNodeFromTree(StationNode* node, int id);
+    StationNode* findSmallestNode(StationNode* node);
+    StationNode* searchInTree(StationNode* node, int id);
+    void collectInOrder(StationNode* node, vector<StationNode*>& nodes);
+    void collectPreOrder(StationNode* node, vector<StationNode*>& nodes);
+    void collectPostOrder(StationNode* node, vector<StationNode*>& nodes);
+    void deleteAllNodes(StationNode* node);
 };
 
 #endif

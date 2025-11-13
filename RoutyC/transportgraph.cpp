@@ -1,5 +1,7 @@
 #include "transportgraph.h"
 
+using namespace std;
+
 Edge::Edge(int dest, int w) : destination(dest), weight(w) {
 }
 
@@ -11,23 +13,23 @@ TransportGraph::~TransportGraph() {
 }
 
 void TransportGraph::addStation(int id) {
-    if (adjacencyList.find(id) == adjacencyList.end()) {
-        adjacencyList[id] = std::vector<Edge*>();
+    if (connections.find(id) == connections.end()) {
+        connections[id] = vector<Edge*>();
     }
 }
 
 void TransportGraph::removeStation(int id) {
-    if (adjacencyList.find(id) == adjacencyList.end()) {
+    if (connections.find(id) == connections.end()) {
         return;
     }
     
-    for (Edge* edge : adjacencyList[id]) {
+    for (Edge* edge : connections[id]) {
         delete edge;
     }
-    adjacencyList.erase(id);
+    connections.erase(id);
     
-    for (auto& pair : adjacencyList) {
-        std::vector<Edge*>& edges = pair.second;
+    for (auto& pair : connections) {
+        vector<Edge*>& edges = pair.second;
         for (auto it = edges.begin(); it != edges.end();) {
             if ((*it)->destination == id) {
                 delete *it;
@@ -39,28 +41,28 @@ void TransportGraph::removeStation(int id) {
     }
 }
 
-void TransportGraph::addEdge(int source, int destination, int weight) {
+void TransportGraph::addRoute(int source, int destination, int weight) {
     addStation(source);
     addStation(destination);
     
-    removeEdgeInternal(source, destination);
-    removeEdgeInternal(destination, source);
+    removeOneWayRoute(source, destination);
+    removeOneWayRoute(destination, source);
     
-    adjacencyList[source].push_back(new Edge(destination, weight));
-    adjacencyList[destination].push_back(new Edge(source, weight));
+    connections[source].push_back(new Edge(destination, weight));
+    connections[destination].push_back(new Edge(source, weight));
 }
 
-void TransportGraph::removeEdge(int source, int destination) {
-    removeEdgeInternal(source, destination);
-    removeEdgeInternal(destination, source);
+void TransportGraph::removeRoute(int source, int destination) {
+    removeOneWayRoute(source, destination);
+    removeOneWayRoute(destination, source);
 }
 
-void TransportGraph::removeEdgeInternal(int source, int destination) {
-    if (adjacencyList.find(source) == adjacencyList.end()) {
+void TransportGraph::removeOneWayRoute(int source, int destination) {
+    if (connections.find(source) == connections.end()) {
         return;
     }
     
-    std::vector<Edge*>& edges = adjacencyList[source];
+    vector<Edge*>& edges = connections[source];
     for (auto it = edges.begin(); it != edges.end();) {
         if ((*it)->destination == destination) {
             delete *it;
@@ -72,12 +74,12 @@ void TransportGraph::removeEdgeInternal(int source, int destination) {
     }
 }
 
-bool TransportGraph::hasEdge(int source, int destination) {
-    if (adjacencyList.find(source) == adjacencyList.end()) {
+bool TransportGraph::hasRoute(int source, int destination) {
+    if (connections.find(source) == connections.end()) {
         return false;
     }
     
-    for (Edge* edge : adjacencyList[source]) {
+    for (Edge* edge : connections[source]) {
         if (edge->destination == destination) {
             return true;
         }
@@ -85,12 +87,12 @@ bool TransportGraph::hasEdge(int source, int destination) {
     return false;
 }
 
-int TransportGraph::getEdgeWeight(int source, int destination) {
-    if (adjacencyList.find(source) == adjacencyList.end()) {
+int TransportGraph::getRouteTime(int source, int destination) {
+    if (connections.find(source) == connections.end()) {
         return -1;
     }
     
-    for (Edge* edge : adjacencyList[source]) {
+    for (Edge* edge : connections[source]) {
         if (edge->destination == destination) {
             return edge->weight;
         }
@@ -98,11 +100,11 @@ int TransportGraph::getEdgeWeight(int source, int destination) {
     return -1;
 }
 
-std::vector<int> TransportGraph::getNeighbors(int stationId) {
-    std::vector<int> neighbors;
-    if (adjacencyList.find(stationId) != adjacencyList.end()) {
-        for (Edge* edge : adjacencyList[stationId]) {
-            if (!isClosed(stationId, edge->destination)) {
+vector<int> TransportGraph::getConnectedStations(int stationId) {
+    vector<int> neighbors;
+    if (connections.find(stationId) != connections.end()) {
+        for (Edge* edge : connections[stationId]) {
+            if (!isRouteBlocked(stationId, edge->destination)) {
                 neighbors.push_back(edge->destination);
             }
         }
@@ -110,26 +112,26 @@ std::vector<int> TransportGraph::getNeighbors(int stationId) {
     return neighbors;
 }
 
-std::vector<int> TransportGraph::getAllStations() {
-    std::vector<int> stations;
-    for (const auto& pair : adjacencyList) {
+vector<int> TransportGraph::getAllStations() {
+    vector<int> stations;
+    for (const auto& pair : connections) {
         stations.push_back(pair.first);
     }
     return stations;
 }
 
 void TransportGraph::clear() {
-    for (auto& pair : adjacencyList) {
+    for (auto& pair : connections) {
         for (Edge* edge : pair.second) {
             delete edge;
         }
     }
-    adjacencyList.clear();
+    connections.clear();
 }
 
-bool TransportGraph::isConnected(int source, int destination) {
-    if (adjacencyList.find(source) == adjacencyList.end() || 
-        adjacencyList.find(destination) == adjacencyList.end()) {
+bool TransportGraph::canReach(int source, int destination) {
+    if (connections.find(source) == connections.end() || 
+        connections.find(destination) == connections.end()) {
         return false;
     }
     
@@ -137,13 +139,13 @@ bool TransportGraph::isConnected(int source, int destination) {
         return true;
     }
     
-    std::vector<int> stations = getAllStations();
-    std::map<int, bool> visited;
+    vector<int> stations = getAllStations();
+    map<int, bool> visited;
     for (int station : stations) {
         visited[station] = false;
     }
     
-    std::vector<int> queue;
+    vector<int> queue;
     queue.push_back(source);
     visited[source] = true;
     
@@ -155,7 +157,7 @@ bool TransportGraph::isConnected(int source, int destination) {
             return true;
         }
         
-        std::vector<int> neighbors = getNeighbors(current);
+        vector<int> neighbors = getConnectedStations(current);
         for (int neighbor : neighbors) {
             if (!visited[neighbor]) {
                 visited[neighbor] = true;
@@ -167,18 +169,18 @@ bool TransportGraph::isConnected(int source, int destination) {
     return false;
 }
 
-bool TransportGraph::isGraphFullyConnected() {
-    std::vector<int> stations = getAllStations();
+bool TransportGraph::isFullyConnected() {
+    vector<int> stations = getAllStations();
     if (stations.empty() || stations.size() == 1) {
         return true;
     }
     
-    std::map<int, bool> visited;
+    map<int, bool> visited;
     for (int station : stations) {
         visited[station] = false;
     }
     
-    std::vector<int> queue;
+    vector<int> queue;
     queue.push_back(stations[0]);
     visited[stations[0]] = true;
     int visitedCount = 1;
@@ -187,7 +189,7 @@ bool TransportGraph::isGraphFullyConnected() {
         int current = queue[0];
         queue.erase(queue.begin());
         
-        std::vector<int> neighbors = getNeighbors(current);
+        vector<int> neighbors = getConnectedStations(current);
         for (int neighbor : neighbors) {
             if (!visited[neighbor]) {
                 visited[neighbor] = true;
@@ -200,32 +202,32 @@ bool TransportGraph::isGraphFullyConnected() {
     return visitedCount == (int)stations.size();
 }
 
-std::pair<int, int> TransportGraph::normalizeEdge(int a, int b) {
+pair<int, int> TransportGraph::makeRoutePair(int a, int b) {
     if (a > b) {
         return {b, a};
     }
     return {a, b};
 }
 
-void TransportGraph::addClosure(int source, int destination) {
-    closedEdges.insert(normalizeEdge(source, destination));
+void TransportGraph::blockRoute(int source, int destination) {
+    blockedRoutes.insert(makeRoutePair(source, destination));
 }
 
-void TransportGraph::removeClosure(int source, int destination) {
-    closedEdges.erase(normalizeEdge(source, destination));
+void TransportGraph::unblockRoute(int source, int destination) {
+    blockedRoutes.erase(makeRoutePair(source, destination));
 }
 
-void TransportGraph::clearClosures() {
-    closedEdges.clear();
+void TransportGraph::clearBlockedRoutes() {
+    blockedRoutes.clear();
 }
 
-bool TransportGraph::isClosed(int source, int destination) {
-    return closedEdges.find(normalizeEdge(source, destination)) != closedEdges.end();
+bool TransportGraph::isRouteBlocked(int source, int destination) {
+    return blockedRoutes.find(makeRoutePair(source, destination)) != blockedRoutes.end();
 }
 
-std::vector<std::pair<int, int>> TransportGraph::getClosures() {
-    std::vector<std::pair<int, int>> result;
-    for (const auto& edge : closedEdges) {
+vector<pair<int, int>> TransportGraph::getBlockedRoutes() {
+    vector<pair<int, int>> result;
+    for (const auto& edge : blockedRoutes) {
         result.push_back(edge);
     }
     return result;

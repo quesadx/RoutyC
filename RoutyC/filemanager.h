@@ -5,16 +5,18 @@
 #include "stationtree.h"
 #include "transportgraph.h"
 
+using namespace std;
+
 class FileManager {
 public:
-    static bool saveToFile(const std::string& filename, StationTree* tree, TransportGraph* graph);
-    static bool loadFromFile(const std::string& filename, StationTree* tree, TransportGraph* graph);
-    static bool loadClosures(const std::string& filename, TransportGraph* graph);
-    static bool saveClosures(const std::string& filename, TransportGraph* graph);
+    static bool saveToFile(const string& filename, StationTree* tree, TransportGraph* graph);
+    static bool loadFromFile(const string& filename, StationTree* tree, TransportGraph* graph);
+    static bool loadClosures(const string& filename, TransportGraph* graph);
+    static bool saveClosures(const string& filename, TransportGraph* graph);
     
 private:
-    static std::string escapeString(const std::string& str);
-    static std::string unescapeString(const std::string& str);
+    static string escapeString(const string& str);
+    static string unescapeString(const string& str);
 };
 
 #endif

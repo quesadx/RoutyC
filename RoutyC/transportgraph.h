@@ -5,6 +5,8 @@
 #include <vector>
 #include <set>
 
+using namespace std;
+
 struct Edge {
     int destination;
     int weight;
@@ -19,27 +21,27 @@ public:
     
     void addStation(int id);
     void removeStation(int id);
-    void addEdge(int source, int destination, int weight);
-    void removeEdge(int source, int destination);
-    bool hasEdge(int source, int destination);
-    int getEdgeWeight(int source, int destination);
-    std::vector<int> getNeighbors(int stationId);
-    std::vector<int> getAllStations();
+    void addRoute(int source, int destination, int weight);
+    void removeRoute(int source, int destination);
+    bool hasRoute(int source, int destination);
+    int getRouteTime(int source, int destination);
+    vector<int> getConnectedStations(int stationId);
+    vector<int> getAllStations();
     void clear();
-    bool isConnected(int source, int destination);
-    bool isGraphFullyConnected();
-    void addClosure(int source, int destination);
-    void removeClosure(int source, int destination);
-    void clearClosures();
-    bool isClosed(int source, int destination);
-    std::vector<std::pair<int, int>> getClosures();
+    bool canReach(int source, int destination);
+    bool isFullyConnected();
+    void blockRoute(int source, int destination);
+    void unblockRoute(int source, int destination);
+    void clearBlockedRoutes();
+    bool isRouteBlocked(int source, int destination);
+    vector<pair<int, int>> getBlockedRoutes();
     
 private:
-    std::map<int, std::vector<Edge*>> adjacencyList;
-    std::set<std::pair<int, int>> closedEdges;
+    map<int, vector<Edge*>> connections;
+    set<pair<int, int>> blockedRoutes;
     
-    void removeEdgeInternal(int source, int destination);
-    std::pair<int, int> normalizeEdge(int a, int b);
+    void removeOneWayRoute(int source, int destination);
+    pair<int, int> makeRoutePair(int a, int b);
 };
 
 #endif
