@@ -540,15 +540,6 @@ void MainWindow::autoLoadData() {
         }
     }
     
-    if (QFile::exists("rutas.txt")) {
-        FileManager::loadFromFile("rutas.txt", networkManager->getTree(), 
-                                 networkManager->getGraph());
-        networkManager->reconstructFromData(networkManager->getTree(), 
-                                           networkManager->getGraph());
-        updateComboBoxes();
-        updateGeneralInfo();
-    }
-    
     if (QFile::exists("cierres.txt")) {
         FileManager::loadClosures("cierres.txt", networkManager->getGraph());
     }
@@ -556,8 +547,6 @@ void MainWindow::autoLoadData() {
 
 void MainWindow::autoSaveData() {
     FileManager::saveToFile("estaciones.txt", networkManager->getTree(), 
-                           networkManager->getGraph());
-    FileManager::saveToFile("rutas.txt", networkManager->getTree(), 
                            networkManager->getGraph());
     FileManager::saveClosures("cierres.txt", networkManager->getGraph());
 }
@@ -634,14 +623,15 @@ void MainWindow::finishAnimation() {
     networkManager->highlightPath(currentResult.path);
     
     ui->pteOutput->appendPlainText("");
+    ui->pteOutput->appendPlainText("Ruta final:");
     
-    QString pathStr = "Ruta final: ";
+    QString pathStr = "";
     for (size_t i = 0; i < currentResult.path.size(); i++) {
         StationNode* node = networkManager->getTree()->findStation(currentResult.path[i]);
         if (node) {
             pathStr += QString::fromStdString(node->name);
             if (i < currentResult.path.size() - 1) {
-                pathStr += " -> ";
+                pathStr += " > ";
             }
         }
     }

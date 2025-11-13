@@ -70,6 +70,20 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
         return;
     }
     
+    std::pair<int, int> key = normalizeEdgePair(id1, id2);
+    
+    if (routeItems.find(key) != routeItems.end()) {
+        scene->removeItem(routeItems[key]);
+        delete routeItems[key];
+        routeItems.erase(key);
+    }
+    
+    if (routeWeightLabels.find(key) != routeWeightLabels.end()) {
+        scene->removeItem(routeWeightLabels[key]);
+        delete routeWeightLabels[key];
+        routeWeightLabels.erase(key);
+    }
+    
     DraggableStation* station1 = stationItems[id1];
     DraggableStation* station2 = stationItems[id2];
     
@@ -83,7 +97,6 @@ void NetworkManager::createRoute(int id1, int id2, int travelTime) {
     scene->addItem(route);
     route->setZValue(-1);
     
-    std::pair<int, int> key = normalizeEdgePair(id1, id2);
     routeItems[key] = route;
     
     QGraphicsTextItem* weightLabel = new QGraphicsTextItem(QString::number(travelTime));

@@ -18,7 +18,7 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
     
     std::vector<int> stations = graph->getAllStations();
     if (stations.empty()) {
-        result.steps.push_back("No stations in graph");
+        result.steps.push_back("No hay estaciones en el grafo");
         return result;
     }
     
@@ -33,11 +33,11 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
     }
     
     distances[origin] = 0;
-    result.steps.push_back("Starting Dijkstra from station " + std::to_string(origin));
+    result.steps.push_back("Iniciando Dijkstra desde estación " + std::to_string(origin));
     
     VisualizationStep initStep;
     initStep.visitedNodes.push_back(origin);
-    initStep.description = "Starting from station " + std::to_string(origin);
+    initStep.description = "Iniciando desde estación " + std::to_string(origin);
     result.visualSteps.push_back(initStep);
     
     while (!unvisited.empty()) {
@@ -89,10 +89,28 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
             if (newDist < distances[neighbor]) {
                 distances[neighbor] = newDist;
                 previous[neighbor] = current;
-                result.steps.push_back("  Updated station " + std::to_string(neighbor) + 
-                                      " distance to " + std::to_string(newDist));
+                result.steps.push_back("  Actualizada estación " + std::to_string(neighbor) + 
+                                      " distancia a " + std::to_string(newDist));
             }
         }
+    }
+    
+    if (previous.find(destination) != previous.end()) {
+        result.found = true;
+        
+        int current = destination;
+        while (current != origin) {
+            result.path.insert(result.path.begin(), current);
+            current = previous[current];
+        }
+        result.path.insert(result.path.begin(), origin);
+        
+        result.totalCost = static_cast<int>(result.path.size()) - 1;
+        result.steps.push_back("Ruta encontrada con costo total: " + std::to_string(result.totalCost));
+    } else {
+        result.steps.push_back("No se encontró ruta al destino");
+    } else {
+        result.steps.push_back("No se encontró ruta al destino");
     }
     
     if (result.found) {
@@ -101,16 +119,16 @@ PathResult DijkstraAlgorithm::findPath(TransportGraph* graph, int origin, int de
             result.path.insert(result.path.begin(), current);
             if (previous.find(current) == previous.end()) {
                 result.found = false;
-                result.steps.push_back("Path reconstruction failed");
+                result.steps.push_back("Falló la reconstrucción de la ruta");
                 return result;
             }
             current = previous[current];
         }
         result.path.insert(result.path.begin(), origin);
-        result.totalCost = distances[destination];
-        result.steps.push_back("Path found with total cost: " + std::to_string(result.totalCost));
+        result.totalCost = distance[destination];
+        result.steps.push_back("Ruta encontrada con costo total: " + std::to_string(result.totalCost));
     } else {
-        result.steps.push_back("No path found to destination");
+        result.steps.push_back("No se encontró ruta al destino");
     }
     
     return result;
@@ -127,7 +145,7 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     
     std::vector<int> stations = graph->getAllStations();
     if (stations.empty()) {
-        result.steps.push_back("No stations in graph");
+        result.steps.push_back("No hay estaciones en el grafo");
         return result;
     }
     
@@ -143,18 +161,18 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     queue.push(origin);
     visited[origin] = true;
     visitedOrder.push_back(origin);
-    result.steps.push_back("Starting BFS from station " + std::to_string(origin));
+    result.steps.push_back("Iniciando BFS desde estación " + std::to_string(origin));
     
     VisualizationStep initStep;
     initStep.visitedNodes.push_back(origin);
-    initStep.description = "Starting BFS from station " + std::to_string(origin);
+    initStep.description = "Iniciando BFS desde estación " + std::to_string(origin);
     result.visualSteps.push_back(initStep);
     
     while (!queue.empty()) {
         int current = queue.front();
         queue.pop();
         
-        result.steps.push_back("Visiting station " + std::to_string(current));
+        result.steps.push_back("Visitando estación " + std::to_string(current));
         
         VisualizationStep step;
         for (int v : visitedOrder) {
@@ -165,7 +183,7 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
                 step.visitedEdges.push_back({previous[v], v});
             }
         }
-        step.description = "Visiting station " + std::to_string(current);
+        step.description = "Visitando estación " + std::to_string(current);
         result.visualSteps.push_back(step);
         
         if (current == destination) {
@@ -180,7 +198,7 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
                 previous[neighbor] = current;
                 queue.push(neighbor);
                 visitedOrder.push_back(neighbor);
-                result.steps.push_back("  Enqueued station " + std::to_string(neighbor));
+                result.steps.push_back("  Encolada estación " + std::to_string(neighbor));
             }
         }
     }
@@ -201,10 +219,10 @@ PathResult BFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
             current = prev;
         }
         result.path.insert(result.path.begin(), origin);
-        result.totalCost = cost;
-        result.steps.push_back("Path found with total cost: " + std::to_string(result.totalCost));
+        result.totalCost = totalCost;
+        result.steps.push_back("Ruta encontrada con costo total: " + std::to_string(result.totalCost));
     } else {
-        result.steps.push_back("No path found to destination");
+        result.steps.push_back("No se encontró ruta al destino");
     }
     
     return result;
@@ -253,10 +271,10 @@ PathResult DFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
         for (size_t i = 0; i < result.path.size() - 1; i++) {
             cost += graph->getEdgeWeight(result.path[i], result.path[i + 1]);
         }
-        result.totalCost = cost;
-        result.steps.push_back("Path found with total cost: " + std::to_string(result.totalCost));
+        result.totalCost = totalCost;
+        result.steps.push_back("Ruta encontrada con costo total: " + std::to_string(result.totalCost));
     } else {
-        result.steps.push_back("No path found to destination");
+        result.steps.push_back("No se encontró ruta al destino");
     }
     
     return result;
@@ -268,7 +286,7 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
                                 std::vector<VisualizationStep>& visualSteps) {
     visited[current] = true;
     path.push_back(current);
-    steps.push_back("Visiting station " + std::to_string(current));
+    steps.push_back("Visitando estación " + std::to_string(current));
     
     VisualizationStep step;
     for (int node : path) {
@@ -277,7 +295,7 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
     for (size_t i = 1; i < path.size(); i++) {
         step.visitedEdges.push_back({path[i-1], path[i]});
     }
-    step.description = "Visiting station " + std::to_string(current);
+    step.description = "Visitando estación " + std::to_string(current);
     visualSteps.push_back(step);
     
     if (current == destination) {
@@ -295,7 +313,7 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
     }
     
     path.pop_back();
-    steps.push_back("Backtracking from station " + std::to_string(current));
+    steps.push_back("Retrocediendo desde estación " + std::to_string(current));
     
     VisualizationStep backtrackStep;
     for (int node : path) {
@@ -304,7 +322,7 @@ bool DFSAlgorithm::dfsRecursive(TransportGraph* graph, int current, int destinat
     for (size_t i = 1; i < path.size(); i++) {
         backtrackStep.visitedEdges.push_back({path[i-1], path[i]});
     }
-    backtrackStep.description = "Backtracking from station " + std::to_string(current);
+    backtrackStep.description = "Retrocediendo desde estación " + std::to_string(current);
     visualSteps.push_back(backtrackStep);
     
     return false;
@@ -576,7 +594,7 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
         dist[i][i] = 0;
     }
     
-    result.steps.push_back("Initializing distance matrix");
+    result.steps.push_back("Inicializando matriz de distancias");
     
     for (int i = 0; i < n; i++) {
         int stationId = indexStation[i];
@@ -590,14 +608,14 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
         }
     }
     
-    result.steps.push_back("Starting Floyd-Warshall algorithm");
+    result.steps.push_back("Iniciando algoritmo Floyd-Warshall");
     
     VisualizationStep initStep;
-    initStep.description = "Initializing all-pairs shortest paths";
+    initStep.description = "Inicializando caminos más cortos entre todos los pares";
     result.visualSteps.push_back(initStep);
     
     for (int k = 0; k < n; k++) {
-        std::string stepDesc = "Processing intermediate vertex " + std::to_string(indexStation[k]);
+        std::string stepDesc = "Procesando vértice intermedio " + std::to_string(indexStation[k]);
         result.steps.push_back(stepDesc);
         
         VisualizationStep step;
@@ -620,13 +638,13 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
         result.visualSteps.push_back(step);
     }
     
-    result.steps.push_back("Floyd-Warshall complete, computing path");
+    result.steps.push_back("Floyd-Warshall completado, calculando ruta");
     
     int startIdx = stationIndex[origin];
     int endIdx = stationIndex[destination];
     
     if (dist[startIdx][endIdx] == INF) {
-        result.steps.push_back("No path exists between " + std::to_string(origin) + " and " + std::to_string(destination));
+        result.steps.push_back("No existe ruta entre " + std::to_string(origin) + " y " + std::to_string(destination));
         result.found = false;
         return result;
     }
@@ -638,7 +656,7 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
         current = next[current][endIdx];
         if (current == -1) {
             result.found = false;
-            result.steps.push_back("Path reconstruction failed");
+            result.steps.push_back("Falló la reconstrucción de la ruta");
             return result;
         }
         result.path.push_back(indexStation[current]);
@@ -647,10 +665,10 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
     result.totalCost = dist[startIdx][endIdx];
     result.found = true;
     
-    std::string pathStr = "Path found: ";
+    std::string pathStr = "Ruta encontrada: ";
     for (size_t i = 0; i < result.path.size(); i++) {
         pathStr += std::to_string(result.path[i]);
-        if (i < result.path.size() - 1) pathStr += " -> ";
+        if (i < result.path.size() - 1) pathStr += " > ";
     }
     pathStr += " (Total: " + std::to_string(result.totalCost) + ")";
     result.steps.push_back(pathStr);
@@ -660,10 +678,11 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
     for (size_t i = 0; i < result.path.size() - 1; i++) {
         finalStep.visitedEdges.push_back({result.path[i], result.path[i + 1]});
     }
-    finalStep.description = "Final path from " + std::to_string(origin) + " to " + std::to_string(destination);
+    finalStep.description = "Ruta final desde " + std::to_string(origin) + " hasta " + std::to_string(destination);
     result.visualSteps.push_back(finalStep);
     
     return result;
+}
 }
 
 std::string KruskalAlgorithm::getName() const {
