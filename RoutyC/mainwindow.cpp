@@ -288,7 +288,7 @@ void MainWindow::exportTraversals() {
     
     QTextStream out(&file);
     
-    out << "=== RECORRIDOS DEL ÁRBOL DE ESTACIONES ===\n\n";
+    out << "~ RECORRIDOS DEL ÁRBOL DE ESTACIONES ~\n\n";
     
     out << "Recorrido In-Order (BST):\n";
     vector<StationNode*> inOrder = networkManager->getAllStations();
@@ -311,7 +311,7 @@ void MainWindow::exportTraversals() {
     }
     out << "\n";
     
-    out << "=== TRANSPORT GRAPH ===\n\n";
+    out << "~ Grafo de transporte ~\n\n";
     
     TransportGraph* graph = networkManager->getGraph();
     vector<int> allStations = graph->getAllStations();
@@ -319,7 +319,7 @@ void MainWindow::exportTraversals() {
     for (int stationId : allStations) {
         StationNode* node = networkManager->getTree()->searchStation(stationId);
         if (node) {
-            out << "Station " << node->id << " (" << QString::fromStdString(node->name) << "):\n";
+            out << "Estación " << node->id << " (" << QString::fromStdString(node->name) << "):\n";
             vector<int> neighbors = graph->getConnectedStations(stationId);
             for (int neighbor : neighbors) {
                 StationNode* neighborNode = networkManager->getTree()->searchStation(neighbor);
@@ -348,12 +348,10 @@ void MainWindow::generateReport() {
     
     QTextStream out(&file);
     
-    out << "======================================\n";
-    out << "    TRANSPORT NETWORK REPORT\n";
-    out << "======================================\n\n";
+    out << "    REPORTE DE LA RED DE TRANSPORTE\n";
     
     vector<StationNode*> stations = networkManager->getAllStations();
-    out << "Total Stations: " << stations.size() << "\n\n";
+    out << "Total de Estaciones: " << stations.size() << "\n\n";
     
     TransportGraph* graph = networkManager->getGraph();
     int totalRoutes = 0;
@@ -362,16 +360,16 @@ void MainWindow::generateReport() {
         totalRoutes += graph->getConnectedStations(stationId).size();
     }
     totalRoutes /= 2;
-    out << "Total Routes: " << totalRoutes << "\n\n";
+    out << "Total de Rutas: " << totalRoutes << "\n\n";
     
-    out << "--- STATIONS ---\n";
+    out << "--- ESTACIONES ---\n";
     for (StationNode* node : stations) {
         out << "ID: " << node->id << "\n";
-        out << "Name: " << QString::fromStdString(node->name) << "\n";
-        out << "Position: (" << node->x << ", " << node->y << ")\n";
+        out << "Nombre: " << QString::fromStdString(node->name) << "\n";
+        out << "Posición: (" << node->x << ", " << node->y << ")\n";
         
         vector<int> neighbors = graph->getConnectedStations(node->id);
-        out << "Connections: " << neighbors.size() << "\n";
+        out << "Conexiones: " << neighbors.size() << "\n";
         
         for (int neighbor : neighbors) {
             StationNode* neighborNode = networkManager->getTree()->searchStation(neighbor);
@@ -384,11 +382,11 @@ void MainWindow::generateReport() {
         out << "\n";
     }
     
-    out << "--- CONNECTIVITY ANALYSIS ---\n";
+    out << "~ ANÁLISIS DE CONECTIVIDAD ~\n";
     for (StationNode* node : stations) {
         int connections = graph->getConnectedStations(node->id).size();
-        out << QString::fromStdString(node->name) << ": " << connections << " connection";
-        if (connections != 1) out << "s";
+        out << QString::fromStdString(node->name) << ": " << connections << " conexión";
+        if (connections != 1) out << "es";
         out << "\n";
     }
     

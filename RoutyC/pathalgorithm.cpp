@@ -251,11 +251,11 @@ PathResult DFSAlgorithm::findPath(TransportGraph* graph, int origin, int destina
     vector<int> path;
     vector<int> foundPath;
     
-    result.steps.push_back("Starting DFS from station " + to_string(origin));
+    result.steps.push_back("Iniciando DFS desde la estación " + to_string(origin));
     
     VisualizationStep initStep;
     initStep.visitedNodes.push_back(origin);
-    initStep.description = "Starting DFS from station " + to_string(origin);
+    initStep.description = "Iniciando DFS desde la estación " + to_string(origin);
     result.visualSteps.push_back(initStep);
     
     for (int station : stations) {
@@ -353,11 +353,11 @@ PathResult PrimAlgorithm::findPath(TransportGraph* graph, int origin, int destin
     
     key[origin] = 0;
     parent[origin] = -1;
-    result.steps.push_back("Starting Prim's MST from station " + to_string(origin));
+    result.steps.push_back("Iniciando MST de Prim desde la estación " + to_string(origin));
     
     VisualizationStep initStep;
     initStep.visitedNodes.push_back(origin);
-    initStep.description = "Starting from station " + to_string(origin);
+    initStep.description = "Iniciando desde la estación " + to_string(origin);
     result.visualSteps.push_back(initStep);
     
     for (size_t count = 0; count < stations.size(); count++) {
@@ -456,7 +456,7 @@ PathResult KruskalAlgorithm::findPath(TransportGraph* graph, int origin, int des
         parent[station] = station;
     }
     
-    result.steps.push_back("Starting Kruskal's MST algorithm");
+    result.steps.push_back("Iniciando MST de Kruskal");
     vector<pair<int, int>> mstEdges;
     
     for (auto& edge : edges) {
@@ -572,7 +572,7 @@ PathResult FloydWarshallAlgorithm::findPath(TransportGraph* graph, int origin, i
     
     vector<int> stations = graph->getAllStations();
     if (stations.empty()) {
-        result.steps.push_back("No stations in graph");
+        result.steps.push_back("No hay estaciones en el grafo");
         return result;
     }
     

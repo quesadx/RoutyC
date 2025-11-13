@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>obsidian_theme.qss</file>
+        <file>styles.qss</file>
     </qresource>
 </RCC>

@@ -4,12 +4,12 @@
 #include "mainwindow.h"
 
 int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
-    qSetMessagePattern("%{message}");
+    QApplication a(argc, argv); // Para inicializar la aplicación Qt
     
-    QFile styleFile(":/obsidian_theme.qss");
+    // Para cargar y aplicar la hoja de estilos QSS desde un archivo
+    QFile styleFile(":/styles.qss");
     if (!styleFile.exists()) {
-        styleFile.setFileName("obsidian_theme.qss");
+        styleFile.setFileName("styles.qss");
     }
     
     if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
