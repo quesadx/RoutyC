@@ -12,7 +12,7 @@ bool FileManager::saveToFile(const string& filename, StationTree* tree, Transpor
     
     vector<StationNode*> stations = tree->getAllStations();
     
-    file << "STATIONS\n";
+    file << "ESTACIONES\n";
     for (StationNode* node : stations) {
         file << node->id << "|" 
              << escapeString(node->name) << "|"
@@ -20,7 +20,7 @@ bool FileManager::saveToFile(const string& filename, StationTree* tree, Transpor
              << node->y << "\n";
     }
     
-    file << "ROUTES\n";
+    file << "RUTAS\n";
     vector<int> allStations = graph->getAllStations();
     for (int stationId : allStations) {
         vector<int> neighbors = graph->getAllConnectedStations(stationId);
@@ -32,7 +32,7 @@ bool FileManager::saveToFile(const string& filename, StationTree* tree, Transpor
         }
     }
     
-    file << "CLOSURES\n";
+    file << "CIERRES\n";
     vector<pair<int, int>> closures = graph->getBlockedRoutes();
     for (const auto& closure : closures) {
         file << closure.first << "|" << closure.second << "\n";
@@ -59,18 +59,18 @@ bool FileManager::loadFromFile(const string& filename, StationTree* tree, Transp
             continue;
         }
         
-        if (line == "STATIONS") {
-            section = "STATIONS";
+        if (line == "ESTACIONES") {
+            section = "ESTACIONES";
             continue;
-        } else if (line == "ROUTES") {
-            section = "ROUTES";
+        } else if (line == "RUTAS") {
+            section = "RUTAS";
             continue;
-        } else if (line == "CLOSURES") {
-            section = "CLOSURES";
+        } else if (line == "CIERRES") {
+            section = "CIERRES";
             continue;
         }
         
-        if (section == "STATIONS") {
+        if (section == "ESTACIONES") {
             istringstream iss(line);
             string idStr, name, xStr, yStr;
             
@@ -87,7 +87,7 @@ bool FileManager::loadFromFile(const string& filename, StationTree* tree, Transp
             tree->addStation(id, unescapedName, x, y);
             graph->addStation(id);
             
-        } else if (section == "ROUTES") {
+        } else if (section == "RUTAS") {
             istringstream iss(line);
             string id1Str, id2Str, weightStr;
             
@@ -100,7 +100,7 @@ bool FileManager::loadFromFile(const string& filename, StationTree* tree, Transp
             int weight = stoi(weightStr);
             
             graph->addRoute(id1, id2, weight);
-        } else if (section == "CLOSURES") {
+        } else if (section == "CIERRES") {
             istringstream iss(line);
             string id1Str, id2Str;
             
