@@ -6,17 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1019</width>
-    <height>679</height>
+    <width>1155</width>
+    <height>803</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
@@ -38,23 +38,55 @@
        </layout>
       </item>
       <item>
-       <widget class="QPlainTextEdit" name="pteOutput">
-        <property name="minimumSize">
-         <size>
-          <width>300</width>
-          <height>0</height>
-         </size>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SizeConstraint::SetFixedSize</enum>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>300</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-        </property>
-       </widget>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>175</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Salida de información:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPlainTextEdit" name="pteOutput">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -66,7 +98,7 @@
       <item>
        <widget class="QLabel" name="lblGeneralInfo">
         <property name="text">
-         <string>Información general del sistema</string>
+         <string>&lt;Info | info &gt;</string>
         </property>
        </widget>
       </item>
@@ -94,13 +126,13 @@
            <widget class="QComboBox" name="cbOrigin">
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>150</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>300</width>
+              <width>150</width>
               <height>16777215</height>
              </size>
             </property>
@@ -113,13 +145,13 @@
            <widget class="QComboBox" name="cbDestination">
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>150</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>300</width>
+              <width>150</width>
               <height>16777215</height>
              </size>
             </property>
@@ -136,13 +168,13 @@
            <widget class="QComboBox" name="cbAlgorithm">
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>150</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>200</width>
+              <width>150</width>
               <height>16777215</height>
              </size>
             </property>
@@ -155,13 +187,13 @@
            <widget class="QPushButton" name="pbCalculateWithAlgorithm">
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>150</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>300</width>
+              <width>150</width>
               <height>16777215</height>
              </size>
             </property>
@@ -183,7 +215,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1019</width>
+     <width>1155</width>
      <height>24</height>
     </rect>
    </property>
@@ -208,6 +240,8 @@
     </property>
     <addaction name="actionCreateRoute"/>
     <addaction name="actionDeleteRoute"/>
+    <addaction name="separator"/>
+    <addaction name="actionModifyRoute"/>
    </widget>
    <widget class="QMenu" name="menuEstaci_n">
     <property name="title">
@@ -265,6 +299,11 @@
   <action name="actionGenerateReport">
    <property name="text">
     <string>Generar reporte</string>
+   </property>
+  </action>
+  <action name="actionModifyRoute">
+   <property name="text">
+    <string>Modificar ruta</string>
    </property>
   </action>
  </widget>

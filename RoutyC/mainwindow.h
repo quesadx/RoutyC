@@ -43,6 +43,7 @@ private slots:
     void on_actionClearCurrentDisplay_triggered();
     void on_actionCreateRoute_triggered();
     void on_actionDeleteRoute_triggered();
+    void on_actionModifyRoute_triggered();
     void on_actionCreateStation_triggered();
     void on_actionDeleteStation_triggered();
     void on_actionExportTraversals_triggered();

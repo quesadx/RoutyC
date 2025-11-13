@@ -620,6 +620,14 @@ void MainWindow::on_actionDeleteRoute_triggered() {
     msgBox.exec();
 }
 
+void MainWindow::on_actionModifyRoute_triggered() {
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Modificar Ruta");
+    msgBox.setText("Haga clic derecho en una línea de ruta para modificar su tiempo de viaje, bloquearla o eliminarla.");
+    msgBox.setIcon(QMessageBox::NoIcon);
+    msgBox.exec();
+}
+
 void MainWindow::on_actionCreateStation_triggered() {
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("Crear Estación");
