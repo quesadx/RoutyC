@@ -10,6 +10,7 @@
 #include <QColor>
 #include <QPainter>
 #include <QPixmap>
+#include <fstream>
 
 using namespace std;
 
@@ -637,7 +638,9 @@ void MainWindow::on_actionCreateStation_triggered() {
 }
 
 void MainWindow::autoLoadData() {
-    if (QFile::exists("estaciones.txt")) {
+    ifstream estacionesFile("estaciones.txt");
+    if (estacionesFile.good()) {
+        estacionesFile.close();
         if (FileManager::loadFromFile("estaciones.txt", networkManager->getTree(), 
                                      networkManager->getGraph())) {
             networkManager->reconstructFromData(networkManager->getTree(), 
@@ -647,7 +650,9 @@ void MainWindow::autoLoadData() {
         }
     }
     
-    if (QFile::exists("cierres.txt")) {
+    ifstream cierresFile("cierres.txt");
+    if (cierresFile.good()) {
+        cierresFile.close();
         FileManager::loadClosures("cierres.txt", networkManager->getGraph());
         networkManager->updateAllRouteVisualStates();
     }
