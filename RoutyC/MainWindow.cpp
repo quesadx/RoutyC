@@ -430,7 +430,7 @@ void MainWindow::generateReport() {
     
     QTextStream out(&file);
     
-    out << "REPORTE DE LA RED DE TRANSPORTE DE LA MANCHA\n";
+    out << "~ Reporte de la red de transporte de La Mancha ~\n";
     
     vector<StationNode*> stations = networkManager->getAllStations();
     out << "Total de Estaciones: " << stations.size() << "\n\n";
@@ -444,7 +444,7 @@ void MainWindow::generateReport() {
     totalRoutes /= 2;
     out << "Total de Rutas: " << totalRoutes << "\n\n";
     
-    out << "~ ESTACIONES ~\n";
+    out << "~ Estaciones ~\n";
     for (StationNode* node : stations) {
         out << "ID: " << node->id << "\n";
         out << "Nombre: " << QString::fromStdString(node->name) << "\n";
@@ -463,8 +463,8 @@ void MainWindow::generateReport() {
         }
         out << "\n";
     }
-    
-    out << "~ ANÁLISIS DE CONECTIVIDAD ~\n";
+
+    out << "~ Análisis de conectividad ~\n";
     for (StationNode* node : stations) {
         int connections = graph->getConnectedStations(node->id).size();
         out << QString::fromStdString(node->name) << ": " << connections << " conexión";
